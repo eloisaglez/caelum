@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>CANSAT PRO: MISSION CONTROL</title>
+    <meta charset="utf-8">
+    <style>
+        /* --- ESTILOS GENERALES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Roboto', monospace;
+            background: #101010;
+            color: #eee;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            height: 40px;
+            background: #000;
+            border-bottom: 2px solid #ffd700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+
+        /* --- LAYOUT --- */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 50% 50%;
+            height: calc(100vh - 40px);
+            gap: 4px;
+            background: #2a2a2a;
+        }
+
+        /* --- COLUMNA IZQUIERDA --- */
+        .left-panel {
+            background: #000;
+            display: grid;
+            grid-template-rows: 55% 45%; 
+            gap: 4px;
+        }
+
+        .area-map {
+            position: relative;
+            background: #111;
+        }
+        #mapa { width: 100%; height: 100%; }
+
+        .instruments-deck {
+            background: #080808;
+            display: flex;
+            border-top: 2px solid #333;
+        }
+        
+        .deck-3d {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #222 0%, #000 100%);
+            border-right: 1px solid #333;
+            overflow: hidden;
+        }
+
+        .deck-gauges {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            padding: 5px;
+            background: #050505;
+        }
+        
+        .gauge-row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            justify-content: space-between;
+            padding: 0 15px;
+            background: #111;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            border-left: 3px solid #333;
+        }
+        canvas.gauge { width: 70px; height: 70px; }
+        .g-label { font-size: 0.9rem; font-weight: bold; color: #fff; width: 50px;}
+        .g-val { font-size: 1rem; font-family: monospace; color: #ffd700; width: 50px; text-align: right;}
+
+        /* --- COLUMNA DERECHA --- */
+        .right-panel {
+            background: #141414;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* KPIs */
+        .kpi-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            height: 60px;
+        }
+        .kpi-box {
+            flex: 1;
+            background: #222;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-left: 4px solid #555;
+        }
+        .kpi-val { font-size: 1.4rem; font-weight: bold; color: #fff; }
+        .kpi-lbl { font-size: 0.7rem; color: #aaa; text-transform: uppercase; }
+
+        /* GRÁFICAS */
+        .charts-group {
+            flex: 1;
+            display: grid;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 6px;
+            max-height: 45%;
+        }
+        .chart-mini {
+            background: #1a1a1a;
+            border-radius: 4px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Headers Unificados */
+        .panel-header {
+            background: #252525;
+            padding: 4px 10px;
+            font-size: 0.85rem;
+            color: #eee;
+            font-weight: 800;
+            border-bottom: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 28px;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-body { flex: 1; position: relative; min-height: 0; }
+
+        /* PANEL GASES */
+        .gas-panel {
+            flex: 1;
+            background: #111;
+            border-radius: 6px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .gas-body {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            flex: 1;
+        }
+
+        .bar-row { display: flex; align-items: center; height: 25px; }
+        .bar-lbl { width: 50px; font-size: 0.8rem; color: #ccc; font-weight: bold; }
+        .bar-bg { flex: 1; background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin: 0 10px; }
+        .bar-fill { height: 100%; transition: width 0.2s; box-shadow: 0 0 8px currentColor; }
+        .bar-num { width: 50px; text-align: right; font-family: monospace; font-size: 0.9rem; color: #fff; }
+
+        .axes-legend {
+            position: absolute; bottom: 5px; left: 5px; font-size: 0.65rem; color: #888;
+            pointer-events: none;
+        }
+    </style>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+    <div class="header">
+        <div>CANSAT <span style="color:#ffd700">GOLD TRACKER</span></div>
+        <div style="font-size:0.75rem; color:#aaa;">FIREBASE LIVE DATA</div>
+    </div>
+
+    <div class="main-grid">
+        
+        <div class="left-panel">
+            <div class="area-map">
+                <div id="mapa"></div>
+            </div>
+
+            <div class="instruments-deck">
+                <div class="deck-3d" id="cont-3d">
+                    <div class="axes-legend">
+                        <span style="color:#ff3333">■ X</span> 
+                        <span style="color:#33ff33">■ Y</span> 
+                        <span style="color:#3333ff">■ Z</span>
+                    </div>
+                </div>
+                
+                <div class="deck-gauges">
+                    <div class="gauge-row" style="border-left-color: #00ffff;">
+                        <span class="g-label">ACC X</span>
+                        <canvas id="g-x" class="gauge"></canvas>
+                        <span class="g-val" id="txt-acc-x">0.0</span>
+                    </div>
+                    <div class="gauge-row" style="border-left-color: #00ff00;">
+                        <span class="g-label">ACC Y</span>
+                        <canvas id="g-y" class="gauge"></canvas>
+                        <span class="g-val" id="txt-acc-y">0.0</span>
+                    </div>
+                    <div class="gauge-row" style="border-left-color: #ff4444;">
+                        <span class="g-label">ACC Z</span>
+                        <canvas id="g-z" class="gauge"></canvas>
+                        <span class="g-val" id="txt-acc-z">1.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            
+            <div class="kpi-row">
+                <div class="kpi-box" style="border-color:#fff">
+                    <div class="kpi-lbl">ALTITUD (m)</div>
+                    <div class="kpi-val" id="val-alt">0</div>
+                </div>
+                <div class="kpi-box" style="border-color:#00aaff">
+                    <div class="kpi-lbl">PRESIÓN (hPa)</div>
+                    <div class="kpi-val" id="val-press">0</div>
+                </div>
+                <div class="kpi-box" style="border-color:#ff9900">
+                    <div class="kpi-lbl">TEMPERATURA (°C)</div>
+                    <div class="kpi-val" id="val-temp">0</div>
+                </div>
+            </div>
+
+            <div class="charts-group">
+                <div class="chart-mini">
+                    <div class="panel-header">ALTITUD</div>
+                    <div class="chart-body">
+                        <canvas id="c-alt"></canvas>
+                    </div>
+                </div>
+                <div class="chart-mini">
+                    <div class="panel-header">PRESIÓN ATMOSFÉRICA</div>
+                    <div class="chart-body">
+                        <canvas id="c-press"></canvas>
+                    </div>
+                </div>
+                <div class="chart-mini">
+                    <div class="panel-header">TEMPERATURA</div>
+                    <div class="chart-body">
+                        <canvas id="c-temp"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gas-panel">
+                <div class="panel-header">CALIDAD DEL AIRE</div>
+                <div class="gas-body">
+                    <div class="bar-row">
+                        <span class="bar-lbl">H₂</span>
+                        <div class="bar-bg"><div id="b-h2" class="bar-fill"></div></div>
+                        <span class="bar-num" id="n-h2">0</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-lbl">ETANOL</span>
+                        <div class="bar-bg"><div id="b-eth" class="bar-fill"></div></div>
+                        <span class="bar-num" id="n-eth">0</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-lbl">eCO₂</span>
+                        <div class="bar-bg"><div id="b-eco2" class="bar-fill"></div></div>
+                        <span class="bar-num" id="n-eco2">0</span>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-lbl">TVOC</span>
+                        <div class="bar-bg"><div id="b-tvoc" class="bar-fill"></div></div>
+                        <span class="bar-num" id="n-tvoc">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue, query, orderByKey, limitToLast } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCA2OZ8OoN41hykh5PbSZ9eoPths-iuDfE",
+            authDomain: "cansat-66d98.firebaseapp.com",
+            databaseURL: "https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "cansat-66d98",
+            storageBucket: "cansat-66d98.firebasestorage.app",
+            messagingSenderId: "219640958295",
+            appId: "1:219640958295:web:42837107ac3f60e3e18212"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // --- MAP ---
+        const map = L.map('mapa', {zoomControl:false}).setView([40.5216, -3.9252], 15);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        let marker = null;
+        const path = L.polyline([], {color:'#ffd700', weight:4}).addTo(map);
+        let pathPoints = [];
+
+        // --- 3D GOLD ---
+        const cont3d = document.getElementById('cont-3d');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, cont3d.clientWidth/cont3d.clientHeight, 0.1, 100);
+        const renderer = new THREE.WebGLRenderer({alpha:true, antialias:true});
+        renderer.setSize(cont3d.clientWidth, cont3d.clientHeight);
+        cont3d.appendChild(renderer.domElement);
+
+        const matBody = new THREE.MeshPhongMaterial({
+            color: 0xffd700, emissive: 0x442200, specular: 0xffffff, shininess: 100
+        });
+        const cansat = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 2.5, 32), matBody);
+        const axesHelper = new THREE.AxesHelper(3);
+        cansat.add(axesHelper);
+        scene.add(cansat);
+
+        const light = new THREE.DirectionalLight(0xffffff, 2);
+        light.position.set(5, 5, 5);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
+        camera.position.z = 6;
+
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+        animate();
+
+        // --- GAUGES ---
+        function drawGauge(id, val, color) {
+            const ctx = document.getElementById(id).getContext('2d');
+            const w = ctx.canvas.width; const h = ctx.canvas.height;
+            const cx = w/2, cy = h/2, r = (w/2) - 8; 
+            
+            ctx.clearRect(0,0,w,h);
+            
+            // Fondo
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+            ctx.strokeStyle = '#444'; 
+            ctx.lineWidth = 10;       
+            ctx.lineCap = 'butt';
+            ctx.stroke();
+            
+            // Valor
+            const maxVal = 300; // Ajustado para acelerómetros reales
+            const pct = Math.min(Math.max(val/maxVal, -1), 1);
+            const start = -Math.PI/2;
+            const end = start + (pct * Math.PI);
+            
+            ctx.beginPath(); ctx.arc(cx, cy, r, start, end, val < 0);
+            ctx.strokeStyle = color; 
+            ctx.lineWidth = 10; 
+            ctx.lineCap = 'round';
+            ctx.shadowColor = color; ctx.shadowBlur = 10; 
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        // --- CHARTS ---
+        const commonOpts = {
+            responsive:true, maintainAspectRatio:false, animation:false,
+            plugins:{legend:{display:false}},
+            layout: { padding: { left: 0, right: 0, top: 5, bottom: 0 } },
+            scales:{
+                x:{display:false}, 
+                y:{
+                    grid:{color:'#333'}, 
+                    ticks:{color:'#999', font:{size:10}}
+                }
+            }
+        };
+        const createChart = (id, color) => new Chart(document.getElementById(id), {
+            type:'line',
+            data:{labels:Array(30).fill(''), datasets:[{data:[], borderColor:color, borderWidth:2, pointRadius:0, tension:0.3}]},
+            options:commonOpts
+        });
+
+        const cAlt = createChart('c-alt', '#fff');
+        const cPress = createChart('c-press', '#00aaff');
+        const cTemp = createChart('c-temp', '#ff9900');
+
+        const push = (c, v) => { 
+            c.data.datasets[0].data.push(v); 
+            if(c.data.datasets[0].data.length>30) c.data.datasets[0].data.shift(); 
+            c.update(); 
+        };
+
+        // --- FIREBASE LISTENER ---
+        const telemetriaRef = ref(database, 'cansat/telemetria');
+        const ultimoDato = query(telemetriaRef, orderByKey(), limitToLast(1));
+        
+        onValue(ultimoDato, (snapshot) => {
+            snapshot.forEach((childSnapshot) => {
+                const d = childSnapshot.val();
+                
+                // 3D rotation
+                cansat.rotation.x = (d.rotX || 0) * (Math.PI/180);
+                cansat.rotation.z = (d.rotZ || 0) * (Math.PI/180);
+
+                // Map
+                if (d.latitud && d.longitud) {
+                    const pos = [d.latitud, d.longitud];
+                    if (marker) {
+                        marker.setLatLng(pos);
+                    } else {
+                        marker = L.marker(pos).addTo(map);
+                    }
+                    map.panTo(pos);
+                    pathPoints.push(pos);
+                    if (pathPoints.length > 100) pathPoints.shift();
+                    path.setLatLngs(pathPoints);
+                }
+
+                // Gauges
+                drawGauge('g-x', d.accelX || 0, '#00ffff'); 
+                document.getElementById('txt-acc-x').innerText = (d.accelX || 0).toFixed(1);
+                
+                drawGauge('g-y', d.accelY || 0, '#00ff00'); 
+                document.getElementById('txt-acc-y').innerText = (d.accelY || 0).toFixed(1);
+                
+                drawGauge('g-z', d.accelZ || 0, '#ff4444'); 
+                document.getElementById('txt-acc-z').innerText = (d.accelZ || 0).toFixed(1);
+
+                // KPIs
+                const alt = d.altitudGPS || d.altitud || 0;
+                document.getElementById('val-alt').innerText = alt.toFixed(0);
+                document.getElementById('val-press').innerText = (d.presion || 0).toFixed(0);
+                document.getElementById('val-temp').innerText = (d.temperatura || 0).toFixed(1);
+
+                // Charts
+                push(cAlt, alt);
+                push(cPress, d.presion || 0);
+                push(cTemp, d.temperatura || 0);
+
+                // Barras (valores por defecto 0 si no existen)
+                const setBar = (id, nId, val, min, range, color) => {
+                    const pct = Math.min(Math.max((val - min)/range * 100, 0), 100);
+                    document.getElementById(id).style.width = pct + '%';
+                    document.getElementById(id).style.backgroundColor = color;
+                    document.getElementById(id).style.boxShadow = `0 0 10px ${color}`;
+                    document.getElementById(nId).innerText = val.toFixed(0);
+                };
+                
+                // Estos valores pueden no existir aún, mostrar 0
+                setBar('b-h2', 'n-h2', d.h2 || 0, 11000, 2500, '#00aaff');
+                setBar('b-eth', 'n-eth', d.etanol || 0, 16000, 2500, '#e91e63');
+                setBar('b-eco2', 'n-eco2', d.eco2 || 0, 0, 800, '#ffeb3b');
+                setBar('b-tvoc', 'n-tvoc', d.tvoc || 0, 0, 400, '#ff9800');
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            map.invalidateSize();
+            camera.aspect = cont3d.clientWidth / cont3d.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(cont3d.clientWidth, cont3d.clientHeight);
+            document.querySelectorAll('canvas.gauge').forEach(c => { c.width = c.clientWidth; c.height = c.clientHeight; });
+        });
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
+
+    </script>
+</body>
+</html>
