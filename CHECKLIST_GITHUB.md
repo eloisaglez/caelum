@@ -26,10 +26,8 @@
 - [ ] manual_usuario.pdf
 
 ### 🗺️ Mapas (ejemplos generados - opcional)
-- [x] mapa_manchas_calor.html
-- [x] mapa_cortina_humo.html
 - [x] mapa_cortina_humo_optimizado.html
-- [x] mapa_nubes_contaminacion.html
+
 
 ---
 
