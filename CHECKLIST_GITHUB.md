@@ -14,8 +14,8 @@
 - [x] simulador_completo.py (envía datos a Firebase)
 - [x] analizar_mision2.py (análisis estadístico)
 - [x] generar_kml_mision2.py (Google Earth 3D)
-- [x] visualizar_gases_avanzado.py (3 tipos de mapas)
-- [x] mapa_cortina_optimizado.py (cortina de humo sin trayectoria)
+- [x] generar_datos_ejemplo.py (genera CSV de prueba)
+- [x] mapa_cortina_optimizado.py (cortina de humo)
 
 ### 🌐 Panel Web
 - [x] cansat_gold_firebase.html (panel principal)
@@ -48,7 +48,7 @@ cansat-mision2/
 │   ├── simulador_completo.py         ✅
 │   ├── analizar_mision2.py           ✅
 │   ├── generar_kml_mision2.py        ✅
-│   ├── visualizar_gases_avanzado.py  ✅
+│   ├── generar_datos_ejemplo.py      ✅
 │   └── mapa_cortina_optimizado.py    ✅
 │
 ├── web/
@@ -59,12 +59,6 @@ cansat-mision2/
 │   ├── Documentacion_CanSat_Mision2.docx  ⚠️ (por añadir)
 │   ├── esquema_conexiones.png             ⚠️ (por añadir)
 │   └── manual_usuario.pdf                 ⚠️ (por añadir)
-│
-├── ejemplos_mapas/  (opcional)
-│   ├── mapa_manchas_calor.html       ✅
-│   ├── mapa_cortina_humo.html        ✅
-│   ├── mapa_cortina_humo_optimizado.html ✅
-│   └── mapa_nubes_contaminacion.html ✅
 │
 └── data/
     └── mission2.csv (generado al volar)
@@ -99,11 +93,9 @@ cansat-mision2/
 - [x] Integración con simulador
 
 ### ✅ Visualizaciones
-- [x] Script para mapas de calor
 - [x] Script para cortinas de humo
-- [x] Script para nubes de contaminación
-- [x] Comparación de estilos
 - [x] Configuración personalizable
+- [x] Mapa interactivo con Folium
 
 ---
 
@@ -150,11 +142,10 @@ mv cansat_mission2.ino arduino/
 mv simulador_completo.py python/
 mv analizar_mision2.py python/
 mv generar_kml_mision2.py python/
-mv visualizar_gases_avanzado.py python/
+mv generar_datos_ejemplo.py python/
 mv mapa_cortina_optimizado.py python/
 mv cansat_gold_firebase.html web/
 mv README_WEB.md web/
-mv mapa_*.html ejemplos_mapas/
 
 # 5. Crear .gitignore
 cat > .gitignore << EOF
@@ -269,11 +260,10 @@ python simulador_completo.py
 ```bash
 cd python
 
-# Opción 1: Script completo (3 mapas)
-python visualizar_gases_avanzado.py
-
-# Opción 2: Solo cortina de humo optimizada
+# Generar mapa de cortina de humo
 python mapa_cortina_optimizado.py
+
+# Se genera: mapa_cortina_humo_optimizado.html
 ```
 
 ---
@@ -294,7 +284,8 @@ python mapa_cortina_optimizado.py
 ### ✅ Listo para GitHub:
 - Panel web completo y funcional
 - Simulador Python operativo
-- Scripts de visualización avanzados (4 tipos de mapas)
+- Script de visualización de cortina de humo
+- Scripts de análisis y generación de datos
 - Documentación completa
 - Estructura de proyecto profesional
 
@@ -311,7 +302,7 @@ python mapa_cortina_optimizado.py
 Tu repositorio GitHub tendrá:
 - 🌐 Panel web profesional desplegable en Firebase
 - 🐍 5 scripts Python listos para usar
-- 📊 4 estilos diferentes de visualización de datos
+- 📊 Visualización de cortina de humo interactiva
 - 📚 Documentación completa para replicar el proyecto
 - 🎓 Perfecto para educación y competiciones CanSat
 
