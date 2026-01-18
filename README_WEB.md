@@ -4,27 +4,19 @@ Panel de control en tiempo real para visualización de datos del CanSat conectad
 
 ---
 
-## 🎨 Versiones Disponibles
+## 🎨 Panel de Control
 
-### 1. **cansat_gold_firebase.html** (Recomendado)
+### **cansat_gold_firebase.html**
 Panel profesional estilo "Mission Control" con tema dorado.
 
 **Características:**
 - ✅ Diseño espacial profesional
-- ✅ Mapa satelital ArcGIS
+- ✅ Mapa satelital ArcGIS (World Imagery)
 - ✅ CanSat 3D dorado con ejes RGB
-- ✅ Gauges circulares de acelerómetro
+- ✅ Gauges circulares de acelerómetro (X, Y, Z)
 - ✅ Gráficos de altitud, presión y temperatura
 - ✅ Panel de calidad del aire (TVOC, eCO₂, H₂, Etanol)
-
-### 2. **cansat_optimized.html**
-Panel alternativo con diseño compacto.
-
-**Características:**
-- ✅ Layout optimizado 4 columnas
-- ✅ Gauges semicirculares con colores RGB
-- ✅ Google Maps Satellite
-- ✅ Temperatura con gauge circular
+- ✅ Layout 50/50 (Mapa+3D | Datos+Gráficos)
 
 ---
 
