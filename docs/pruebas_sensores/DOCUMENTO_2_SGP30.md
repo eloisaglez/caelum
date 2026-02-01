@@ -197,7 +197,7 @@ void loop() {
 
 ✅ Necesita "warmup"
    Los primeros 15 segundos son calibración
-   No confíes en valores antes de ese tiempo
+   No confiar en valores antes de ese tiempo
 
 ✅ TVOC + eCO2 son relativos
    Sirven para detectar CAMBIOS
@@ -207,14 +207,6 @@ void loop() {
    Son datos sin procesar
    Útiles para identificar TIPO de contaminación
 ```
-
----
-
-## 🎯 Próximo Paso
-
-**Documento 3:** Integración GPS
-
-Archivo: `PROGRAMA_3_GPS_POSICION.ino`
 
 ---
 
