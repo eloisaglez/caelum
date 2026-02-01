@@ -378,7 +378,6 @@ RECEPTOR (En tierra):
 Una vez que APC220 funciona correctamente:
 - ✅ Cargar **PROGRAMA_FINAL_CANSAT_MISION2.ino**
 - ✅ TODOS los sensores + APC220 funcionan juntos
-- ✅ Listo para **BRUNETE 2026**
 
 ---
 
