@@ -85,11 +85,6 @@ Aceleración Z:         ~1.0 m/s² (gravedad en reposo)
   → Reinstalar librerías
 ```
 
-### 🎯 Próximo paso
-⬇️ Si todo funciona → **PRUEBA 2**
-
----
-
 ## 🚀 PRUEBA 2: SENSOR SGP30 (GASES)
 
 ### 📖 Documento a Leer
@@ -195,10 +190,6 @@ Acerca algo con olor (trapo con perfume/alcohol):
   → eCO2 debe cambiar
   → Si no cambia: problema de conexión
 ```
-
-### 🎯 Próximo paso
-⬇️ Si todo funciona → **PRUEBA 3**
-
 ---
 
 ## 🚀 PRUEBA 3: GPS (POSICIÓN)
@@ -210,7 +201,7 @@ Acerca algo con olor (trapo con perfume/alcohol):
 - ✅ Cómo funciona GPS
 - ✅ Cómo conectar (SoftwareSerial D2/D4)
 - ✅ Tiempo obtención señal (2-5 min)
-- ⚠️ SOLO funciona en EXTERIOR
+- ⚠️ Funciona mejor en EXTERIOR
 
 ### 🔌 Conexión Física
 ```
@@ -229,9 +220,7 @@ Arduino Nano 33 BLE:
 **Pasos:**
 1. Abre `PROGRAMA_3_GPS_POSICION.ino`
 2. Carga en Arduino
-3. **¡¡IMPORTANTE!!** Lleva Arduino a EXTERIOR
-4. Abre Monitor Serial (9600 baud)
-5. Apunta antena GPS AL CIELO
+3. Abre Monitor Serial (9600 baud)
 
 ### ✅ Verificación
 ```
@@ -261,27 +250,10 @@ Satélites: 4-10 (cuantos más, mejor)
 Tiempo: 2-5 MINUTOS para primer fix
 ```
 
-### ⏱️ Tiempo
-- Lectura documento: **10 min**
-- Conexión física: **5 min**
-- Carga programa: **5 min**
-- **Ir a exterior + esperar GPS: 5-10 MIN**
-- **Total: ~35 minutos**
-
-### ⚠️ IMPORTANTE
-```
-❌ NO FUNCIONA EN INTERIOR
-   (aunque esperes 30 minutos)
-
-✅ DEBE ESTAR EN EXTERIOR
-   • Cielo despejado
-   • Sin árboles/edificios
-   • Antena hacia ARRIBA
-```
-
 ### 🚨 Si falla
 ```
-❌ "0 satélites después de 10 min en exterior"
+❌ "0 satélites después de 10 min  sacar al exterior"
+❌ "0 satélites después de 10 min  en exterior"
   → Problema: GPS defectuoso
   → O: Cables mal conectados
   → Verificar D2/D4 conectados
@@ -290,10 +262,6 @@ Tiempo: 2-5 MINUTOS para primer fix
   → Normal: espera más satélites
   → Mueve antena en diferentes ángulos
 ```
-
-### 🎯 Próximo paso
-⬇️ Si todo funciona → **PRUEBA 4**
-
 ---
 
 ## 🚀 PRUEBA 4: MICROSD (GRABACIÓN)
@@ -368,15 +336,6 @@ Monitor Serial (9600 baud):
    0,23.50,65.2,929.5,45,410,12500,18000
    1,23.50,65.1,929.5,48,412,12600,18100
 ```
-
-### ⏱️ Tiempo
-- Lectura documento: **10 min**
-- Preparar MicroSD: **5 min**
-- Conexión física: **5 min**
-- Carga programa: **5 min**
-- Verificación: **10 min**
-- **Total: ~35 minutos**
-
 ### 🚨 Si falla
 ```
 ❌ "MicroSD no inicializa"
@@ -392,9 +351,6 @@ Monitor Serial (9600 baud):
   → Buffer no se flushed
   → Código no cierra archivo correctamente
 ```
-
-### 🎯 Próximo paso
-⬇️ Si todo funciona → **PRUEBA 5**
 
 ---
 
@@ -468,14 +424,6 @@ Esperado:
   • >1000m: ❌ Falla
 ```
 
-### ⏱️ Tiempo
-- Lectura documento: **10 min**
-- Conexión física: **5 min**
-- Carga programa: **5 min**
-- Verificación básica: **5 min**
-- Test de alcance: **15 min** (opcional)
-- **Total: ~40 minutos**
-
 ### 🚨 Si falla
 ```
 ❌ "No se reciben datos"
@@ -489,13 +437,9 @@ Esperado:
   → Normal en ambiente urbano
 ```
 
-### 🎯 ¿Próximo paso?
-✅ **TODAS LAS PRUEBAS COMPLETADAS** 
-
 Ahora puedes:
 - ✅ Cargar **PROGRAMA_FINAL_CANSAT_MISION2.ino**
 - ✅ Todos los sensores funcionan juntos
-- ✅ Listo para **BRUNETE 2026**
 
 ---
 
@@ -537,13 +481,13 @@ PRUEBA 5: APC220 (Telemetría)
   ☐ Leído DOCUMENTO_5
   ☐ Cargado PROGRAMA_5
   ☐ Datos se envían correctamente
-  ☐ Receptor recibe datos (opcional)
+  ☐ Receptor recibe datos 
   ☐ Alcance verificado
 
 FINAL:
   ☐ Todas las pruebas VERDES
   ☐ Listo para cargar PROGRAMA_FINAL
-  ☐ ¡¡A BRUNETE!!
+  ☐ ¡¡MISIÓN CUMPLIDA!!
 ```
 
 ---
@@ -567,7 +511,7 @@ CARGAR: PROGRAMA_FINAL_CANSAT_MISION2.ino
   ↓
 VERIFICAR: Todos juntos funcionan ✓
   ↓
-🚀 ¡¡A BRUNETE!!
+🚀 ¡¡MISIÓN CUMPLIDA!!
 ```
 
 ---
