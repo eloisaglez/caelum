@@ -21,7 +21,7 @@ Potencia:       9 (máxima)
 Puerto serie:   9600 bps
 Paridad:        0 (sin paridad)
 
-Comando: WR 434000 3 9 3 0
+Comando: WR 434000 3 9 3 0 # (Frecuencia ejemplo - Cambiar por la del concurso)
 ```
 
 ---
@@ -30,7 +30,7 @@ Comando: WR 434000 3 9 3 0
 
 ### Método: Arduino UNO como configurador
 
-Otros métodos (rfmagic, PuTTY, terminales serie) no funcionaron porque no podían establecer comunicación con el módulo.
+Otros métodos (rfmagic, PuTTY, terminales serie) no funcionaron porque no podían establecer comunicación con el módulo. Ver https://beetlecraft.blogspot.com/2015/10/tutorial-apc220.html para resolver con rfmagic
 
 ### Hardware necesario
 - Arduino UNO
@@ -152,8 +152,9 @@ Abrir monitor serie del puerto USB-TTL a 9600 baud.
 ## CHECKLIST
 
 ```
+(Frecuencia ejemplo - Cambiar por la del concurso)
 CONFIGURACIÓN:
-[ ] APC220 #1 configurado: PARA 434000 3 9 3 0
+[ ] APC220 #1 configurado: PARA 434000 3 9 3 0 
 [ ] APC220 #2 configurado: PARA 434000 3 9 3 0
 
 EMISOR (Nano 33 BLE):
