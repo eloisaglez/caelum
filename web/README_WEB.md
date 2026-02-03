@@ -10,7 +10,6 @@ Panel de control en tiempo real para visualización de datos del CanSat conectad
 Panel profesional estilo "Mission Control" con tema dorado.
 
 **Características:**
-- ✅ Diseño espacial profesional
 - ✅ Mapa satelital ArcGIS (World Imagery)
 - ✅ CanSat 3D dorado con ejes RGB
 - ✅ Gauges circulares de acelerómetro (X, Y, Z)
