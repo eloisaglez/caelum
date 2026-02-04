@@ -10,7 +10,7 @@ El Arduino Nano 33 BLE tiene problemas conocidos de compatibilidad con módulos 
 
 ## Programas Disponibles
 
-### 1. PROGRAMA_CANSAT_RAM_OPTIMIZADO.ino
+### 1. PROGRAMA_CANSAT_RAM_PRUEBA.ino
 **Uso:** Pruebas manuales
 
 Permite grabar y exportar datos mediante comandos por el Monitor Serie.
@@ -86,15 +86,6 @@ timestamp,temp,hum,pres,alt,co2,lat,lon,altGPS,sat,accX,accY,accZ
 1000,22.50,65.00,1013.25,498,412,40.579500,-3.918400,497,8,0.05,-0.02,9.80
 2000,22.45,65.10,1013.30,497,408,40.579510,-3.918390,496,8,0.03,-0.01,9.81
 ```
-
-### Programa de vuelo:
-```csv
-timestamp,temp,presion,altitud,accX,accY,accZ
-1000,22.50,1013.25,498,0.05,-0.02,9.80
-2000,22.45,1013.30,497,0.03,-0.01,9.81
-```
-
----
 
 ## Datos Guardados
 
