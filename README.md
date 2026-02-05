@@ -93,8 +93,6 @@ cansat-mision2/
 5. Repetir con el segundo APC220
 ```
 
-**Nota:** Las conexiones del APC220 son DIRECTAS (TX→TXD, RX→RXD), no cruzadas.
-
 ### 3. Cargar programa final
 
 ```bash
@@ -127,14 +125,14 @@ Sensores Integrados:
 
 Sensores Externos:
 ├── I2C (SDA/SCL) → SCD40/SGP30 (CO2/TVOC)
-├── Serial1 (Pin 0/1) → APC220 (Telemetría)
+├── Serial1 (Pin 0/1) → GPS
 ├── SPI (D10-D13) → MicroSD
-└── Serial (D2/D4) → GPS
+└── Serial (D2/D4) → APC220 (Telemetría)
 ```
 
 ### APC220 - Conexiones para Telemetría
 
-**Emisor (Nano 33 BLE):**
+**Emisor (Nano 33 BLE):** (ACTUALIZAR)
 ```
 Pin 0 (RX) → RXD del APC220
 Pin 1 (TX) → TXD del APC220
@@ -152,11 +150,8 @@ D8  → SET
 GND → GND
 ```
 
-**IMPORTANTE:** Las conexiones van DIRECTAS, no cruzadas.
 
----
-
-## Clasificación de Calidad del Aire
+## Clasificación de Calidad del Aire (ACTUALIZAR)
 
 | TVOC (ppb) | Calidad | Causa Probable |
 |------------|---------|----------------|
