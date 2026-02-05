@@ -15,21 +15,21 @@
 
 ---
 
-## Características
+## Características (ACTUALIZAR CON RAM)
 
 | Componente | Descripción |
 |------------|-------------|
 | **Microcontrolador** | Arduino Nano 33 BLE Sense Rev2 |
 | **Sensor Gas** | SGP30/SCD40: TVOC + eCO2 |
 | **Posicionamiento** | GPS ATGM336H |
-| **Almacenamiento** | MicroSD (respaldo) |
+| **Almacenamiento** | MicroSD (respaldo) | (NO IMPLEMENTADO)
 | **Telemetría** | APC220: RF 434 MHz en tiempo real |
 | **Panel Web** | Firebase + Telemetría en vivo |
 | **Análisis** | Python: Mapas + KML + Gráficas |
 
 ---
 
-## Estructura del Repositorio
+## Estructura del Repositorio (ACTUALIZAR)
 
 ```
 cansat-mision2/
@@ -47,7 +47,7 @@ cansat-mision2/
 │   ├── ACLARACIONES_SENSORES_TEMPERATURA.md
 │   └── TROUBLESHOOTING_COMPLETO.md
 │
-├── arduino/                     Programas Arduino
+├── arduino/                     Programas Arduino (ACTUALIZAR)
 │   ├── PROGRAMA_1_SENSORES_INTEGRADOS.ino
 │   ├── PROGRAMA_2_SGP30_GASES.ino
 │   ├── PROGRAMA_3_GPS_POSICION.ino
