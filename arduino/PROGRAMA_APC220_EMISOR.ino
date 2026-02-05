@@ -1,44 +1,45 @@
+#include <Arduino.h>
+
 // ============================================
 // PROGRAMA_APC220_EMISOR.ino
 // Arduino Nano 33 BLE Sense Rev2
-// 
-// Emisor de telemetría por APC220
 // ============================================
 //
-// DESCRIPCIÓN:
-// Envía datos a través del módulo APC220 usando Serial1.
-// Este programa es para probar la comunicación antes de
-// integrar los sensores del CanSat.
-//
-// ============================================
-// CONEXIÓN NANO 33 BLE - APC220
+// CONEXIÓN NANO 33 BLE - APC220 (Pines 2 y 3)
 // ============================================
 //
-// IMPORTANTE: Las conexiones van DIRECTAS, no cruzadas.
-// La etiqueta TXD/RXD del APC220 indica dónde conectar
-// el pin del micro, no la función del módulo.
-//
-// Nano 33 BLE     APC220
+// Nano 33 BLE      APC220
 // ─────────────────────────
-// Pin 0 (RX)  →   RXD
-// Pin 1 (TX)  →   TXD
-// 3.3V        →   VCC
-// GND         →   GND
-//
-// NOTA: El pin EN del APC220 puede dejarse sin conectar,
-// funciona igualmente. Si usas Grove, no hay problema.
-//
+// Pin 2 (RX)  →    TXD (o el pin que envía datos del APC)
+// Pin 3 (TX)  →    RXD (o el pin que recibe datos en el APC)
+// 3.3V        →    VCC
+// GND         →    GND
 // ============================================
+
+// En el Nano 33 BLE definimos un nuevo puerto Hardware UART.
+// Sintaxis: UART(Pin_TX, Pin_RX);
+// Configuración: TX en D3, RX en D2
+//NOTA: El pin EN del APC220 puede dejarse sin conectar,
+// funciona igualmente. Si usas Grove, no hay problema.
+
+UART ApcSerial(3, 2); 
 
 void setup() {
   Serial.begin(9600);   // USB (debug)
-  Serial1.begin(9600);  // APC220 en pines 0 y 1
+  
+  // Iniciamos nuestro nuevo puerto en pines 2 y 3
+  ApcSerial.begin(9600); 
+  
   delay(1000);
-  Serial.println("Emisor APC220 listo...");
+  Serial.println("Emisor APC220 listo en pines 2 y 3...");
 }
 
 void loop() {
-  Serial1.println("HOLA");
-  Serial.println("Enviado: HOLA");  // Debug por USB
+  // Enviamos por el puerto nuevo (pines 2 y 3)
+  ApcSerial.println("HOLA");
+  
+  // Mensaje de control por USB
+  Serial.println("Enviado: HOLA");  
+  
   delay(2000);
 }
