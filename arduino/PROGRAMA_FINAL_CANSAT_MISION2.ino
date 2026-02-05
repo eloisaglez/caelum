@@ -1,431 +1,299 @@
 /*
- * ========================================================================
- * CANSAT MISIÓN 2 - PROGRAMA FINAL COMPLETO
- * ========================================================================
- * 
- * Autor: CanSat Misión 2
- * Fecha: Enero 2026
- * Proyecto: Detección de Firmas de Combustión
- * 
- * SENSORES INTEGRADOS:
- *   ✅ HS3003: Temperatura REAL + Humedad
- *   ✅ LPS22HB: Presión + Altitud
- *   ✅ BMI270: Acelerómetro + Giroscopio
- *   ✅ BMM150: Magnetómetro (Brújula)
- *   ✅ APDS9960: Luz ambiente
- * 
- * SENSORES EXTERNOS:
- *   ✅ SGP30 (I2C A4/A5): TVOC + eCO2 + H2 + Ethanol
- *   ✅ GPS (SoftwareSerial D2/D4): Posición + Altitud
- *   ✅ APC220 (Serial1): Antena RF para telemetría
- *   ✅ MicroSD (SPI D10/D11/D12/D13): Grabación CSV
- * 
- * ========================================================================
+ * ============================================
+ * CANSAT MISIÓN 2 - VERSIÓN FINAL "DEBUG"
+ * Arduino Nano 33 BLE Sense Rev2
+ * ============================================
+ * * GUÍA RÁPIDA DE COMANDOS (Escribir en Monitor Serie y pulsar Enter):
+ * -------------------------------------------------------------------
+ * "GRABAR" -> Fuerza el inicio de grabación (ideal para pruebas en mesa).
+ * "PARAR"  -> Detiene la grabación manualmente.
+ * "CSV"    -> Descarga todos los datos guardados (para Excel).
+ * "BORRAR" -> Borra la memoria RAM para empezar de cero.
+ * "ESTADO" -> Te dice cuántos datos llevas y si el GPS tiene señal.
+ * -------------------------------------------------------------------
+ * * CONEXIONES FÍSICAS:
+ * 1. GPS (BN-220): 
+ * - TX del GPS -> Pin 0 (RX) del Arduino
+ * - RX del GPS -> Pin 1 (TX) del Arduino
+ * * 2. RADIO (APC220): 
+ * - TXD de la Radio -> Pin 2 del Arduino
+ * - RXD de la Radio -> Pin 3 del Arduino
+ * * 3. Sensor Gases (SGP30): Pines A4 (SDA) y A5 (SCL)
  */
 
-// ========== LIBRERÍAS ==========
-#include <Arduino_BMI270_BMM150.h>
-#include <Arduino_HS300x.h>
-#include <ReefwingLPS22HB.h>
-#include "Adafruit_SGP30.h"
-#include <SD.h>
-#include <SPI.h>
-#include <SoftwareSerial.h>
+#include <Wire.h>
+// LIBRERÍAS (Instalar desde Gestor de Librerías):
+#include <Arduino_LPS22HB.h>        // Presión (Oficial Arduino)
+#include <Arduino_HS300x.h>         // Temp/Humedad (Oficial Arduino)
+#include <Arduino_BMI270_BMM150.h>  // Acelerómetro (Oficial Arduino)
+#include <Adafruit_SGP30.h>         // Gases
+#include <TinyGPS++.h>              // GPS
 
-// ========== INSTANCIAS ==========
-ReefwingLPS22HB pressureSensor;
-Adafruit_SGP30 sgp30;
-File dataFile;
-SoftwareSerial gpsSerial(2, 4);  // RX=D2, TX=D4
+// ============================================
+// 1. CONFIGURACIÓN DE PUERTOS
+// ============================================
+// Radio APC220 en pines 2 (RX) y 3 (TX)
+UART ApcSerial(3, 2); 
 
-// ========== CONSTANTES ==========
-const int chipSelect = 10;
-String filename = "MISSION2.CSV";
-float referencePressure = 1013.25;  // Nivel del mar
+// El GPS usa Serial1 (Pines 0 y 1) automáticamente
 
-// ========== VARIABLES - IMU ==========
-float accelX = 0, accelY = 0, accelZ = 0;
-float gyroX = 0, gyroY = 0, gyroZ = 0;
-float magnetX = 0, magnetY = 0, magnetZ = 0;
+// ============================================
+// 2. PARÁMETROS DE VUELO
+// ============================================
+#define NOMBRE_EQUIPO "CAELUM"
+#define UMBRAL_ALTITUD 30.0   // Metros para activar grabación automática
+#define MAX_REGISTROS 500     // Capacidad de memoria
+#define INTERVALO_GRABACION 1000   // 1 segundo
+#define INTERVALO_TELEMETRIA 1000  // 1 segundo
 
-// ========== VARIABLES - SENSORES AMBIENTALES ==========
-float temperatura_hs = 0, humedad = 0;
-float temperatura_lps = 0, presion = 0;
-float altitud = 0;
+// ============================================
+// 3. VARIABLES Y OBJETOS
+// ============================================
+TinyGPSPlus gps;
+Adafruit_SGP30 sgp;
 
-// ========== VARIABLES - SGP30 ==========
-uint16_t tvoc = 0, eco2 = 0;
-uint16_t h2_raw = 0, ethanol_raw = 0;
+struct DatosSensor {
+  uint32_t timestamp;
+  int16_t temperatura; int16_t humedad; int16_t presion; int16_t altitud;
+  uint16_t tvoc; uint16_t eco2; uint16_t h2; uint16_t ethanol;
+  int32_t latitud; int32_t longitud; int16_t altitudGPS; uint8_t satelites;
+  int16_t accX, accY, accZ; int16_t gyrX, gyrY, gyrZ;
+};
 
-// ========== VARIABLES - GPS ==========
-String gpsData = "";
-float gps_lat = 0.0, gps_lon = 0.0;
-float gps_alt = 0.0;
-int gps_satellites = 0;
-boolean gps_fix = false;
+DatosSensor registros[MAX_REGISTROS];
+int numRegistros = 0;
+bool grabando = false;
+unsigned long tiempoInicioGrabacion = 0;
+unsigned long ultimaGrabacion = 0;
+unsigned long ultimaTelemetria = 0;
+uint32_t numeroPaquete = 0;
 
-// ========== VARIABLES - CONTROL ==========
-unsigned long lastPrintTime = 0;
-unsigned long lastSDWriteTime = 0;
-unsigned long lastAPC220SendTime = 0;
-unsigned long lastGPSReadTime = 0;
-int readingCount = 0;
-boolean imuOk = false, hs3003Ok = false, lps22hbOk = false;
-boolean sgp30Ok = false, sdOk = false, gpsOk = false;
+float altitudInicial = 0, altitudActual = 0;
+float temp = 0, hum = 0, pres = 0;
+uint16_t tvoc = 0, eco2 = 0, h2 = 0, ethanol = 0;
+float lat = 0, lon = 0, altGPS = 0;
+int sats = 0;
+float accX = 0, accY = 0, accZ = 0;
+float gyrX = 0, gyrY = 0, gyrZ = 0;
 
-// ========== CONFIGURACIÓN ==========
-const unsigned long PRINT_INTERVAL = 2000;
-const unsigned long SD_WRITE_INTERVAL = 1000;
-const unsigned long APC220_SEND_INTERVAL = 5000;
-const unsigned long GPS_READ_INTERVAL = 500;
-
-// ========================================================================
-// SETUP
-// ========================================================================
-
+// ============================================
+// SETUP (SE EJECUTA UNA VEZ)
+// ============================================
 void setup() {
-  Serial.begin(9600);      // USB (debug)
-  Serial1.begin(9600);     // APC220 (telemetría)
-  gpsSerial.begin(9600);   // GPS
-  delay(2000);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH); // LED encendido mientras inicia
   
-  printBanner();
+  Serial.begin(115200);  // USB Rápido
+  ApcSerial.begin(9600); // Radio
+  Serial1.begin(9600);   // GPS
   
-  // Inicializar IMU
-  Serial.print("IMU (BMI270+BMM150)... ");
-  if (!IMU.begin()) {
-    Serial.println("❌");
-    imuOk = false;
-  } else {
-    Serial.println("✓");
-    imuOk = true;
+  delay(2000); // Tiempo para abrir monitor
+
+  Serial.println("\n=== INICIANDO SISTEMA CANSAT ===");
+  
+  // Iniciar Sensores
+  if (!BARO.begin()) Serial.println("[FALLO] Sensor Presion"); else Serial.println("[OK] Presion");
+  if (!HS300x.begin()) Serial.println("[FALLO] Temp/Hum"); else Serial.println("[OK] Temp/Hum");
+  if (!IMU.begin()) Serial.println("[FALLO] IMU"); else Serial.println("[OK] Acelerometro");
+  if (!sgp.begin()) Serial.println("[FALLO] SGP30 Gases"); else Serial.println("[OK] SGP30 Gases");
+
+  // Calibrar Altura Base
+  Serial.print("Calibrando altura (NO MOVER)... ");
+  float suma = 0;
+  for (int i = 0; i < 20; i++) {
+    suma += calcularAltitud(BARO.readPressure() * 10); 
+    delay(50);
   }
+  altitudInicial = suma / 20.0;
+  Serial.println("HECHO.");
+
+  Serial.println("\n------------------------------------------------");
+  Serial.println(" COMANDOS DISPONIBLES (Escribelos arriba y pulsa Enter):");
+  Serial.println("  -> GRABAR  (Empieza a guardar ya)");
+  Serial.println("  -> PARAR   (Deja de guardar)");
+  Serial.println("  -> CSV     (Ver datos guardados)");
+  Serial.println("  -> BORRAR  (Limpiar memoria)");
+  Serial.println("------------------------------------------------\n");
   
-  // Inicializar HS3003
-  Serial.print("HS3003 (Temp+Humedad)... ");
-  if (!HS300x.begin()) {
-    Serial.println("❌");
-    hs3003Ok = false;
-  } else {
-    Serial.println("✓");
-    hs3003Ok = true;
-  }
-  
-  // Inicializar LPS22HB
-  Serial.print("LPS22HB (Presión)... ");
-  pressureSensor.begin();
-  if (pressureSensor.connected()) {
-    Serial.println("✓");
-    lps22hbOk = true;
-  } else {
-    Serial.println("❌");
-    lps22hbOk = false;
-  }
-  
-  // Inicializar SGP30
-  Serial.print("SGP30 (TVOC+eCO2)... ");
-  if (!sgp30.begin()) {
-    Serial.println("❌");
-    sgp30Ok = false;
-  } else {
-    Serial.println("✓");
-    sgp30Ok = true;
-  }
-  
-  // Inicializar MicroSD
-  Serial.print("MicroSD (SPI)... ");
-  if (!SD.begin(chipSelect)) {
-    Serial.println("❌");
-    sdOk = false;
-  } else {
-    Serial.println("✓");
-    sdOk = true;
-    crearArchivoCSV();
-  }
-  
-  // Verificar GPS y APC220
-  Serial.print("GPS (SoftwareSerial)... ");
-  Serial.println("✓");
-  gpsOk = true;
-  
-  Serial.print("APC220 (Serial1)... ");
-  Serial.println("✓");
-  
-  Serial.println();
-  Serial.println("═══════════════════════════════════════════════════");
-  Serial.println("Sistema listo. Iniciando ciclo de lectura...");
-  Serial.println("═══════════════════════════════════════════════════");
-  Serial.println();
-  
-  delay(2000);
+  digitalWrite(LED_BUILTIN, LOW); // LED apagado = Listo
 }
 
-// ========================================================================
-// LOOP PRINCIPAL
-// ========================================================================
-
+// ============================================
+// LOOP (SE REPITE CONSTANTEMENTE)
+// ============================================
 void loop() {
-  // LEER GPS
-  if (millis() - lastGPSReadTime >= GPS_READ_INTERVAL) {
-    lastGPSReadTime = millis();
-    readGPS();
-  }
-  
-  // LEER APC220 (escuchar comandos)
-  while (Serial1.available()) {
-    Serial1.read();  // Limpiar buffer
-  }
-  
-  // LEER IMU
-  if (imuOk) {
-    if (IMU.accelerationAvailable()) {
-      IMU.readAcceleration(accelX, accelY, accelZ);
-    }
-    if (IMU.gyroscopeAvailable()) {
-      IMU.readGyroscope(gyroX, gyroY, gyroZ);
-    }
-    if (IMU.magneticFieldAvailable()) {
-      IMU.readMagneticField(magnetX, magnetY, magnetZ);
-    }
-  }
-  
-  // LEER SENSORES AMBIENTALES
-  if (hs3003Ok) {
-    temperatura_hs = HS300x.readTemperature();
-    humedad = HS300x.readHumidity();
-  }
-  
-  if (lps22hbOk) {
-    temperatura_lps = pressureSensor.readTemperature();
-    presion = pressureSensor.readPressure();
-  }
-  
-  // CALCULAR ALTITUD
-  if (gps_fix && gps_alt > 0) {
-    altitud = gps_alt;
-  } else if (lps22hbOk && presion > 0) {
-    float ratio = presion / referencePressure;
-    altitud = 44330.0 * (1.0 - pow(ratio, 1.0 / 5.255));
-  }
-  
-  // LEER SGP30
-  if (sgp30Ok) {
-    if (sgp30.IAQmeasure()) {
-      tvoc = sgp30.TVOC;
-      eco2 = sgp30.eCO2;
-      h2_raw = sgp30.rawH2;
-      ethanol_raw = sgp30.rawEthanol;
-    }
-  }
-  
-  // GRABAR EN MICROSD
-  if (millis() - lastSDWriteTime >= SD_WRITE_INTERVAL) {
-    lastSDWriteTime = millis();
-    if (sdOk) {
-      escribirMicroSD();
-    }
-  }
-  
-  // ENVIAR POR APC220
-  if (millis() - lastAPC220SendTime >= APC220_SEND_INTERVAL) {
-    lastAPC220SendTime = millis();
-    enviarAPC220();
-  }
-  
-  // IMPRIMIR EN MONITOR SERIE
-  if (millis() - lastPrintTime >= PRINT_INTERVAL) {
-    lastPrintTime = millis();
-    mostrarDatos();
-    readingCount++;
-  }
-}
+  unsigned long ahora = millis();
 
-// ========================================================================
-// FUNCIONES AUXILIARES
-// ========================================================================
-
-void printBanner() {
-  Serial.println();
-  Serial.println("╔════════════════════════════════════════════════════════════╗");
-  Serial.println("║          CANSAT MISIÓN 2 - PROGRAMA FINAL                 ║");
-  Serial.println("║     Detección de Firmas de Combustión - Enero 2026        ║");
-  Serial.println("║         IES Diego Velázquez - Bilingual School            ║");
-  Serial.println("╚════════════════════════════════════════════════════════════╝");
-  Serial.println();
-  Serial.println("Inicializando sensores...");
-  Serial.println();
-}
-
-void crearArchivoCSV() {
-  if (!SD.exists(filename)) {
-    dataFile = SD.open(filename, FILE_WRITE);
-    if (dataFile) {
-      dataFile.println("tiempo,lat,lon,alt_gps,alt_calc,temp,humedad,presion,tvoc,eco2,h2,ethanol,accelx,accely,accelz,gyroX,gyroY,gyroZ,brujula,satelites");
-      dataFile.close();
-    }
+  // 1. LEER COMANDOS USB (Si tú escribes algo)
+  if (Serial.available()) {
+    String comando = Serial.readStringUntil('\n');
+    comando.trim(); comando.toUpperCase();
+    procesarComando(comando);
   }
-}
+  
+  // 2. LEER GPS (Siempre activo)
+  while (Serial1.available() > 0) gps.encode(Serial1.read());
+  
+  // 3. LEER SENSORES
+  leerSensores();
+  altitudActual = calcularAltitud(pres);
 
-void readGPS() {
-  while (gpsSerial.available()) {
-    char c = gpsSerial.read();
-    gpsData += c;
-    if (c == '\n') {
-      parseGPS(gpsData);
-      gpsData = "";
-    }
-  }
-}
-
-void parseGPS(String sentence) {
-  if (sentence.length() < 6) return;
-  
-  if (sentence.startsWith("$GNGGA") || sentence.startsWith("$GPGGA")) {
-    parseGGA(sentence);
-  } else if (sentence.startsWith("$GNRMC") || sentence.startsWith("$GPRMC")) {
-    parseRMC(sentence);
-  }
-}
-
-void parseRMC(String sentence) {
-  int commaCount = 0;
-  int lastIndex = 0;
-  
-  for (int i = 0; i < sentence.length(); i++) {
-    if (sentence[i] == ',' || sentence[i] == '\n') {
-      String field = sentence.substring(lastIndex, i);
-      
-      if (commaCount == 2) {
-        gps_fix = (field == "A");
-      } else if (commaCount == 3) {
-        gps_lat = parseCoordinate(field);
-      } else if (commaCount == 5) {
-        gps_lon = parseCoordinate(field);
-      }
-      
-      lastIndex = i + 1;
-      commaCount++;
-    }
-  }
-}
-
-void parseGGA(String sentence) {
-  int commaCount = 0;
-  int lastIndex = 0;
-  
-  for (int i = 0; i < sentence.length(); i++) {
-    if (sentence[i] == ',' || sentence[i] == '\n') {
-      String field = sentence.substring(lastIndex, i);
-      
-      if (commaCount == 7) {
-        gps_satellites = field.toInt();
-      } else if (commaCount == 9) {
-        if (field.length() > 0) {
-          gps_alt = field.toFloat();
-        }
-      }
-      
-      lastIndex = i + 1;
-      commaCount++;
-    }
-  }
-}
-
-float parseCoordinate(String coord) {
-  if (coord.length() < 5) return 0.0;
-  int dotIndex = coord.indexOf('.');
-  int degreeDigits = dotIndex - 2;
-  if (degreeDigits <= 0) return 0.0;
-  
-  float degrees = coord.substring(0, degreeDigits).toFloat();
-  float minutes = coord.substring(degreeDigits).toFloat();
-  return degrees + (minutes / 60.0);
-}
-
-void escribirMicroSD() {
-  if (!sdOk) return;
-  
-  dataFile = SD.open(filename, FILE_WRITE);
-  if (!dataFile) return;
-  
-  String line = String(readingCount) + ",";
-  
-  // GPS
-  if (gps_fix) {
-    line += String(gps_lat, 6) + "," + String(gps_lon, 6) + "," + String(gps_alt, 1) + ",";
+  // 4. LÓGICA DE GRABACIÓN
+  if (!grabando) {
+    // MODO ESPERA (LED parpadea lento)
+    digitalWrite(LED_BUILTIN, (ahora / 1000) % 2);
+    
+    // Auto-activación si sube 30m
+    if (altitudActual > altitudInicial + UMBRAL_ALTITUD) iniciarGrabacion();
+    
   } else {
-    line += "XXXX,XXXX,XXXX,";
+    // MODO GRABANDO (LED parpadea muy rápido)
+    digitalWrite(LED_BUILTIN, (ahora / 100) % 2);
+    
+    if (ahora - ultimaGrabacion >= INTERVALO_GRABACION) {
+      ultimaGrabacion = ahora;
+      grabarRegistro();
+    }
+    
+    // Parada automática si memoria llena
+    if (numRegistros >= MAX_REGISTROS) {
+      grabando = false; 
+      Serial.println(">>> MEMORIA LLENA <<<");
+    }
   }
   
-  // Altitud, Temperatura, Humedad, Presión
-  line += String(altitud, 1) + "," + String(temperatura_hs, 1) + "," + String(humedad, 1) + ",";
-  line += String(presion / 100.0, 1) + ",";
-  
-  // SGP30
-  if (sgp30Ok) {
-    line += String(tvoc) + "," + String(eco2) + "," + String(h2_raw) + "," + String(ethanol_raw) + ",";
-  } else {
-    line += "XXXX,XXXX,XXXX,XXXX,";
+  // 5. ENVIAR TELEMETRÍA (Radio + Pantalla)
+  if (ahora - ultimaTelemetria >= INTERVALO_TELEMETRIA) {
+    ultimaTelemetria = ahora;
+    enviarTelemetria();
   }
-  
-  // IMU
-  if (imuOk) {
-    line += String(accelX, 2) + "," + String(accelY, 2) + "," + String(accelZ, 2) + ",";
-    line += String(gyroX, 1) + "," + String(gyroY, 1) + "," + String(gyroZ, 1) + ",";
-  } else {
-    line += "XXXX,XXXX,XXXX,XXXX,XXXX,XXXX,";
-  }
-  
-  // Brújula
-  if (imuOk) {
-    float heading = atan2(magnetY, magnetX) * 180 / PI;
-    if (heading < 0) heading += 360;
-    line += String(heading, 1) + ",";
-  } else {
-    line += "XXXX,";
-  }
-  
-  line += String(gps_satellites);
-  
-  dataFile.println(line);
-  dataFile.close();
 }
 
-void enviarAPC220() {
-  String telemetry = String(readingCount) + "," + String(temperatura_hs, 1) + "," + String(humedad, 1) + ",";
-  telemetry += String(presion / 100.0, 1) + "," + String(tvoc) + "," + String(eco2) + ",";
-  telemetry += String(gps_lat, 4) + "," + String(gps_lon, 4) + "," + String(altitud, 1) + ",";
-  telemetry += String(gps_satellites);
+// ============================================
+// FUNCIONES DE CONTROL
+// ============================================
+
+void leerSensores() {
+  temp = HS300x.readTemperature();
+  hum = HS300x.readHumidity();
+  pres = BARO.readPressure() * 10; // Convertir kPa a hPa
   
-  Serial1.println(telemetry);
+  if (IMU.accelerationAvailable()) IMU.readAcceleration(accX, accY, accZ);
+  if (IMU.gyroscopeAvailable()) IMU.readGyroscope(gyrX, gyrY, gyrZ);
+  
+  if (sgp.IAQmeasure()) { tvoc = sgp.TVOC; eco2 = sgp.eCO2; }
+  
+  if (gps.location.isValid()) { lat = gps.location.lat(); lon = gps.location.lng(); }
+  if (gps.altitude.isValid()) altGPS = gps.altitude.meters();
+  if (gps.satellites.isValid()) sats = gps.satellites.value();
 }
 
-void mostrarDatos() {
-  if (readingCount % 10 == 0) {
-    Serial.println();
-    Serial.println("N° | Lat | Lon | Alt | T | H | P | TVOC | eCO2 | Sat");
-    Serial.println("──┼─────┼─────┼─────┼──┼──┼──┼──────┼──────┼────");
+void enviarTelemetria() {
+  numeroPaquete++;
+  unsigned long t = grabando ? (millis() - tiempoInicioGrabacion) : millis();
+  
+  // --- A. ENVIAR A RADIO APC220 (Datos CSV crudos para Tierra) ---
+  ApcSerial.print(NOMBRE_EQUIPO); ApcSerial.print(",");
+  ApcSerial.print(numeroPaquete); ApcSerial.print(",");
+  ApcSerial.print(t); ApcSerial.print(",");
+  ApcSerial.print(lat, 6); ApcSerial.print(",");
+  ApcSerial.print(lon, 6); ApcSerial.print(",");
+  ApcSerial.print(altGPS, 1); ApcSerial.print(",");
+  ApcSerial.print(sats); ApcSerial.print(",");
+  ApcSerial.print(temp, 2); ApcSerial.print(",");
+  ApcSerial.print(hum, 2); ApcSerial.print(",");
+  ApcSerial.print(pres, 2); ApcSerial.print(",");
+  ApcSerial.print(altitudActual, 1); ApcSerial.print(",");
+  ApcSerial.print(tvoc); ApcSerial.print(",");
+  ApcSerial.println(eco2);
+
+  // --- B. ENVIAR A PANTALLA USB (Datos legibles para ti) ---
+  Serial.print("DATOS > ");
+  Serial.print("Alt: "); Serial.print(altitudActual, 1); Serial.print("m | ");
+  Serial.print("Temp: "); Serial.print(temp, 1); Serial.print("C | ");
+  Serial.print("Pres: "); Serial.print(pres, 0); Serial.print("hPa | ");
+  Serial.print("Gases: "); Serial.print(tvoc); Serial.print("ppb | ");
+  
+  Serial.print("GPS: "); 
+  if (sats > 0) {
+      Serial.print("OK ("); Serial.print(sats); Serial.print(" sats)");
+  } else {
+      Serial.print("BUSCANDO...");
   }
   
-  Serial.print(readingCount);
-  Serial.print(" | ");
-  Serial.print(gps_lat, 4);
-  Serial.print(" | ");
-  Serial.print(gps_lon, 4);
-  Serial.print(" | ");
-  Serial.print(altitud, 0);
-  Serial.print(" | ");
-  Serial.print(temperatura_hs, 0);
-  Serial.print(" | ");
-  Serial.print(humedad, 0);
-  Serial.print(" | ");
-  Serial.print(presion / 100.0, 0);
-  Serial.print(" | ");
-  Serial.print(tvoc);
-  Serial.print(" | ");
-  Serial.print(eco2);
-  Serial.print(" | ");
-  Serial.println(gps_satellites);
+  if (grabando) Serial.print(" [GRABANDO RAM]");
+  Serial.println(); // Salto de línea
 }
 
-// ========== FIN DEL PROGRAMA ==========
+void iniciarGrabacion() {
+  grabando = true;
+  tiempoInicioGrabacion = millis();
+  ultimaGrabacion = tiempoInicioGrabacion;
+  Serial.println("\n>>> GRABACION INICIADA (LED RAPIDO) <<<\n");
+}
+
+void grabarRegistro() {
+  if (numRegistros >= MAX_REGISTROS) return;
+  DatosSensor d;
+  d.timestamp = millis() - tiempoInicioGrabacion;
+  d.temperatura = (int16_t)(temp * 100);
+  d.humedad = (int16_t)(hum * 100);
+  d.presion = (int16_t)(pres * 10 - 9000); 
+  d.altitud = (int16_t)altitudActual;
+  d.tvoc = tvoc; d.eco2 = eco2;
+  d.latitud = (int32_t)(lat * 1000000); d.longitud = (int32_t)(lon * 1000000);
+  d.altitudGPS = (int16_t)altGPS; d.satelites = sats;
+  d.accX = (int16_t)(accX * 100); d.accY = (int16_t)(accY * 100); d.accZ = (int16_t)(accZ * 100);
+  registros[numRegistros] = d;
+  numRegistros++;
+}
+
+float calcularAltitud(float presion) {
+  return 44330.0 * (1.0 - pow(presion / 1013.25, 0.1903));
+}
+
+// ============================================
+// GESTIÓN DE COMANDOS
+// ============================================
+void procesarComando(String comando) {
+  if (comando == "CSV") {
+    exportarCSV();
+  } else if (comando == "GRABAR") {
+    iniciarGrabacion();
+  } else if (comando == "PARAR") {
+    grabando = false;
+    Serial.println("\n>>> GRABACION DETENIDA MANUALMENTE <<<");
+  } else if (comando == "BORRAR") {
+    numRegistros = 0;
+    Serial.println("\n>>> MEMORIA RAM BORRADA <<<");
+  } else if (comando == "ESTADO") {
+    Serial.print("Registros usados: "); Serial.print(numRegistros);
+    Serial.print(" de "); Serial.println(MAX_REGISTROS);
+  }
+}
+
+void exportarCSV() {
+  if (numRegistros == 0) { Serial.println("MEMORIA VACIA. Usa 'GRABAR' primero."); return; }
+  Serial.println("\n=== COPIAR DESDE AQUI ===");
+  Serial.println("equipo,paquete,timestamp,lat,lon,altGPS,sats,temp,hum,pres,altBaro,tvoc,eco2,accX,accY,accZ");
+  for (int i = 0; i < numRegistros; i++) {
+    DatosSensor d = registros[i];
+    Serial.print(NOMBRE_EQUIPO); Serial.print(",");
+    Serial.print(i + 1); Serial.print(",");
+    Serial.print(d.timestamp); Serial.print(",");
+    Serial.print(d.latitud/1000000.0,6); Serial.print(",");
+    Serial.print(d.longitud/1000000.0,6); Serial.print(",");
+    Serial.print(d.altitudGPS); Serial.print(",");
+    Serial.print(d.satelites); Serial.print(",");
+    Serial.print(d.temperatura/100.0,2); Serial.print(",");
+    Serial.print(d.humedad/100.0,2); Serial.print(",");
+    Serial.print((d.presion+9000)/10.0,2); Serial.print(",");
+    Serial.print(d.altitud); Serial.print(",");
+    Serial.print(d.tvoc); Serial.print(",");
+    Serial.print(d.eco2); Serial.print(",");
+    Serial.print(d.accX/100.0,2); Serial.print(",");
+    Serial.print(d.accY/100.0,2); Serial.println(d.accZ/100.0,2);
+    delay(20);
+  }
+  Serial.println("=== FIN DE DATOS ===\n");
+}
