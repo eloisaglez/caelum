@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_4bfa41619db32186794d9e9f6241ccdc {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+    <script src="https://cdn.jsdelivr.net/gh/python-visualization/folium@main/folium/templates/leaflet_heat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.Default.css"/>
+</head>
+<body>
+    
+    
+    <div style="position: fixed; 
+                bottom: 50px; right: 50px; width: 220px; height: 280px; 
+                background-color: white; border:2px solid grey; z-index:9999; 
+                font-size:14px; padding: 10px; border-radius: 5px;">
+    <h4 style="margin-top: 0;">📊 Leyenda TVOC</h4>
+    <p><span style="color: #00FF00;">●</span> <b>0-220 ppb:</b> Excelente</p>
+    <p><span style="color: #7FFF00;">●</span> <b>220-660 ppb:</b> Buena</p>
+    <p><span style="color: #FFFF00;">●</span> <b>660-2200 ppb:</b> Moderada</p>
+    <p><span style="color: #FF8C00;">●</span> <b>2200-5500 ppb:</b> Mala</p>
+    <p><span style="color: #FF0000;">●</span> <b>>5500 ppb:</b> Muy Mala</p>
+    <hr>
+    <p style="font-size: 12px; margin-top: 10px;">
+    🔥 Rojo intenso = Alta contaminación<br>
+    🟢 Verde = Aire limpio
+    </p>
+    </div>
+    
+    
+            <div class="folium-map" id="map_4bfa41619db32186794d9e9f6241ccdc" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_4bfa41619db32186794d9e9f6241ccdc = L.map(
+                "map_4bfa41619db32186794d9e9f6241ccdc",
+                {
+                    center: [40.57994811853104, -3.9179212116247033],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 16,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_8d6a47ceb95ad48cba856f92c82987b2 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_8d6a47ceb95ad48cba856f92c82987b2.addTo(map_4bfa41619db32186794d9e9f6241ccdc);
+        
+    
+            var heat_map_1a59c2744b4a1c267a13b0b8f2e3fb5e = L.heatLayer(
+                [[40.57895496714153, -3.918426017066122, 0.0066], [40.57901758287423, -3.918366994459534, 0.0044], [40.57909440791986, -3.918351169455006, 0.0042], [40.57917212685029, -3.918327128833428, 0.0051], [40.57922352053522, -3.918273843516396, 0.0074], [40.57929248621663, -3.918259794643396, 0.0073], [40.5793795852316, -3.9182110148123255, 0.004], [40.57944043296799, -3.9181982173908936, 0.0062], [40.57949702939407, -3.918157419791523, 0.0339], [40.579576115255605, -3.918107686560055, 0.0347], [40.57963502099549, -3.918067787747993, 0.0314], [40.57970396339211, -3.91803897597236, 0.0309], [40.57978000582961, -3.9180073633793753, 0.0329], [40.57982741892169, -3.917974735174887, 0.0201], [40.57989826806305, -3.9179520265992136, 0.028], [40.579978859883326, -3.917909957062773, 0.0151], [40.58004331996466, -3.917872882249778, 0.0236], [40.58012555626643, -3.917823221881186, 0.0202], [40.580182299069584, -3.917795874161932, 0.0938], [40.580246221790574, -3.917782457987761, 0.09], [40.58034396683252, -3.917727103987892, 0.1109], [40.58039601809906, -3.9176997128917694, 0.0643], [40.58046791666136, -3.917668148530348, 0.0686], [40.58052195941469, -3.917620779788836, 0.1159], [40.58059972858654, -3.917582103797878, 0.101], [40.58067524715693, -3.9175486182332913, 0.1988], [40.5807315935125, -3.917531840451094, 0.2371], [40.5808158259457, -3.917492057641, 0.165], [40.58087502809586, -3.9174511701243055, 0.1762], [40.580947083062505, -3.9174102445487287, 0.2123]],
+                {
+  "minOpacity": 0.4,
+  "maxZoom": 18,
+  "radius": 25,
+  "blur": 15,
+  "gradient": {
+  0.0: "#00FF00",
+  0.3: "#FFFF00",
+  0.6: "#FF8C00",
+  1.0: "#FF0000",
+},
+  "maxOpacity": 0.8,
+}
+            );
+        
+    
+            heat_map_1a59c2744b4a1c267a13b0b8f2e3fb5e.addTo(map_4bfa41619db32186794d9e9f6241ccdc);
+        
+    
+            var marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2 = L.markerClusterGroup(
+                {
+}
+            );
+        
+    
+            var marker_12d59274560f0ee971fe33cd4f3e0f18 = L.marker(
+                [40.57895496714153, -3.918426017066122],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_6cb95b7d8ff10cf93aea855eec875bd7 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_97fa3a49beae0253dc951badeb8a2931 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_f63417d9dfd2598d9c01ea675552dec8 = $(`<div id="html_f63417d9dfd2598d9c01ea675552dec8" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #1</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 0.0s<br>                 <b>📍 Posición:</b> 40.578955, -3.918426<br>                 <b>📏 Altitud:</b> 500.0 m<br>                 <b>🛰️  Satélites:</b> 7.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">66.0 ppb</span><br>                 <b>💨 eCO2:</b> 422.0 ppm<br>                 <b>🔬 H2 raw:</b> 12230.0<br>                 <b>🔬 Ethanol raw:</b> 17236.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🌿 Aire Limpio             </div>             </div>`)[0];
+                popup_97fa3a49beae0253dc951badeb8a2931.setContent(html_f63417d9dfd2598d9c01ea675552dec8);
+            
+        
+
+        marker_12d59274560f0ee971fe33cd4f3e0f18.bindPopup(popup_97fa3a49beae0253dc951badeb8a2931)
+        ;
+
+        
+    
+    
+            marker_12d59274560f0ee971fe33cd4f3e0f18.bindTooltip(
+                `<div>
+                     TVOC: 66.0 ppb - 🌿 Aire Limpio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_12d59274560f0ee971fe33cd4f3e0f18.setIcon(icon_6cb95b7d8ff10cf93aea855eec875bd7);
+            
+    
+            var marker_239a4ba47d18d7d11c85e0fe88edbb1c = L.marker(
+                [40.57901758287423, -3.918366994459534],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_c88c48e19cc8008c2c66c1dec8de18bd = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_1dfc98876d94d00f273f5e0b1cdfeab4 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_893ffbb9e876ccc92f0f16106a00f924 = $(`<div id="html_893ffbb9e876ccc92f0f16106a00f924" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #2</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 5.0s<br>                 <b>📍 Posición:</b> 40.579018, -3.918367<br>                 <b>📏 Altitud:</b> 482.8 m<br>                 <b>🛰️  Satélites:</b> 6.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">44.0 ppb</span><br>                 <b>💨 eCO2:</b> 442.0 ppm<br>                 <b>🔬 H2 raw:</b> 12028.0<br>                 <b>🔬 Ethanol raw:</b> 17035.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🌿 Aire Limpio             </div>             </div>`)[0];
+                popup_1dfc98876d94d00f273f5e0b1cdfeab4.setContent(html_893ffbb9e876ccc92f0f16106a00f924);
+            
+        
+
+        marker_239a4ba47d18d7d11c85e0fe88edbb1c.bindPopup(popup_1dfc98876d94d00f273f5e0b1cdfeab4)
+        ;
+
+        
+    
+    
+            marker_239a4ba47d18d7d11c85e0fe88edbb1c.bindTooltip(
+                `<div>
+                     TVOC: 44.0 ppb - 🌿 Aire Limpio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_239a4ba47d18d7d11c85e0fe88edbb1c.setIcon(icon_c88c48e19cc8008c2c66c1dec8de18bd);
+            
+    
+            var marker_07ab90d6ec3962a5b4a3c00d0fac706b = L.marker(
+                [40.57909440791986, -3.918351169455006],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_538b415aca44e74540d7b91b6d7c9ec3 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_f53d9c1dfbbb7637d8f461166c88bd79 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ba4bb3a224c6278bac52265960f9dc98 = $(`<div id="html_ba4bb3a224c6278bac52265960f9dc98" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #3</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 10.0s<br>                 <b>📍 Posición:</b> 40.579094, -3.918351<br>                 <b>📏 Altitud:</b> 465.5 m<br>                 <b>🛰️  Satélites:</b> 11.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">42.0 ppb</span><br>                 <b>💨 eCO2:</b> 431.0 ppm<br>                 <b>🔬 H2 raw:</b> 12326.0<br>                 <b>🔬 Ethanol raw:</b> 17186.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🌿 Aire Limpio             </div>             </div>`)[0];
+                popup_f53d9c1dfbbb7637d8f461166c88bd79.setContent(html_ba4bb3a224c6278bac52265960f9dc98);
+            
+        
+
+        marker_07ab90d6ec3962a5b4a3c00d0fac706b.bindPopup(popup_f53d9c1dfbbb7637d8f461166c88bd79)
+        ;
+
+        
+    
+    
+            marker_07ab90d6ec3962a5b4a3c00d0fac706b.bindTooltip(
+                `<div>
+                     TVOC: 42.0 ppb - 🌿 Aire Limpio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_07ab90d6ec3962a5b4a3c00d0fac706b.setIcon(icon_538b415aca44e74540d7b91b6d7c9ec3);
+            
+    
+            var marker_d6882f37da2995a768c6c1bb8a87283d = L.marker(
+                [40.57917212685029, -3.918327128833428],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_c4de5342b591cc8b463c558436a9928f = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_e59017d57ff90f19a2045837908600b2 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_002638d83e487f4338c9eff06ced5ac3 = $(`<div id="html_002638d83e487f4338c9eff06ced5ac3" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #4</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 15.0s<br>                 <b>📍 Posición:</b> 40.579172, -3.918327<br>                 <b>📏 Altitud:</b> 448.3 m<br>                 <b>🛰️  Satélites:</b> 10.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">51.0 ppb</span><br>                 <b>💨 eCO2:</b> 427.0 ppm<br>                 <b>🔬 H2 raw:</b> 12065.0<br>                 <b>🔬 Ethanol raw:</b> 17169.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🌿 Aire Limpio             </div>             </div>`)[0];
+                popup_e59017d57ff90f19a2045837908600b2.setContent(html_002638d83e487f4338c9eff06ced5ac3);
+            
+        
+
+        marker_d6882f37da2995a768c6c1bb8a87283d.bindPopup(popup_e59017d57ff90f19a2045837908600b2)
+        ;
+
+        
+    
+    
+            marker_d6882f37da2995a768c6c1bb8a87283d.bindTooltip(
+                `<div>
+                     TVOC: 51.0 ppb - 🌿 Aire Limpio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d6882f37da2995a768c6c1bb8a87283d.setIcon(icon_c4de5342b591cc8b463c558436a9928f);
+            
+    
+            var marker_fd7428cd7713a3008ff87325991d61ca = L.marker(
+                [40.57922352053522, -3.918273843516396],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_c732b915785266db1ed2dae151854b09 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_e20cd09d1304f8bdc1c32d94b569329c = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_3575e207ff4eceaba341bf229b5495b8 = $(`<div id="html_3575e207ff4eceaba341bf229b5495b8" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #5</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 20.0s<br>                 <b>📍 Posición:</b> 40.579224, -3.918274<br>                 <b>📏 Altitud:</b> 431.0 m<br>                 <b>🛰️  Satélites:</b> 8.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">74.0 ppb</span><br>                 <b>💨 eCO2:</b> 405.0 ppm<br>                 <b>🔬 H2 raw:</b> 12283.0<br>                 <b>🔬 Ethanol raw:</b> 17027.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🌿 Aire Limpio             </div>             </div>`)[0];
+                popup_e20cd09d1304f8bdc1c32d94b569329c.setContent(html_3575e207ff4eceaba341bf229b5495b8);
+            
+        
+
+        marker_fd7428cd7713a3008ff87325991d61ca.bindPopup(popup_e20cd09d1304f8bdc1c32d94b569329c)
+        ;
+
+        
+    
+    
+            marker_fd7428cd7713a3008ff87325991d61ca.bindTooltip(
+                `<div>
+                     TVOC: 74.0 ppb - 🌿 Aire Limpio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_fd7428cd7713a3008ff87325991d61ca.setIcon(icon_c732b915785266db1ed2dae151854b09);
+            
+    
+            var marker_aa9d3683527b6abb607c8de6628061cd = L.marker(
+                [40.57929248621663, -3.918259794643396],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_89a4189be478ba107e9d41e16d6ba368 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_822e82ed7725bc0b97573fd69ad93e52 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ded577099cfd206baeaff6e655b4de6c = $(`<div id="html_ded577099cfd206baeaff6e655b4de6c" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #6</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 25.0s<br>                 <b>📍 Posición:</b> 40.579292, -3.918260<br>                 <b>📏 Altitud:</b> 413.8 m<br>                 <b>🛰️  Satélites:</b> 9.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">73.0 ppb</span><br>                 <b>💨 eCO2:</b> 443.0 ppm<br>                 <b>🔬 H2 raw:</b> 12339.0<br>                 <b>🔬 Ethanol raw:</b> 17285.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🌿 Aire Limpio             </div>             </div>`)[0];
+                popup_822e82ed7725bc0b97573fd69ad93e52.setContent(html_ded577099cfd206baeaff6e655b4de6c);
+            
+        
+
+        marker_aa9d3683527b6abb607c8de6628061cd.bindPopup(popup_822e82ed7725bc0b97573fd69ad93e52)
+        ;
+
+        
+    
+    
+            marker_aa9d3683527b6abb607c8de6628061cd.bindTooltip(
+                `<div>
+                     TVOC: 73.0 ppb - 🌿 Aire Limpio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_aa9d3683527b6abb607c8de6628061cd.setIcon(icon_89a4189be478ba107e9d41e16d6ba368);
+            
+    
+            var marker_80f0eb6f2d35e83c762f55fd0e94e3b8 = L.marker(
+                [40.5793795852316, -3.9182110148123255],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_d80f6c4f1c4de55f36b13448eb206bb8 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_6cad2bcdc9985490094c529472b9f321 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_1c761194d8965d48ac7c61af3d0a2f78 = $(`<div id="html_1c761194d8965d48ac7c61af3d0a2f78" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #7</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 30.0s<br>                 <b>📍 Posición:</b> 40.579380, -3.918211<br>                 <b>📏 Altitud:</b> 396.6 m<br>                 <b>🛰️  Satélites:</b> 11.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">40.0 ppb</span><br>                 <b>💨 eCO2:</b> 427.0 ppm<br>                 <b>🔬 H2 raw:</b> 12472.0<br>                 <b>🔬 Ethanol raw:</b> 17230.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🌿 Aire Limpio             </div>             </div>`)[0];
+                popup_6cad2bcdc9985490094c529472b9f321.setContent(html_1c761194d8965d48ac7c61af3d0a2f78);
+            
+        
+
+        marker_80f0eb6f2d35e83c762f55fd0e94e3b8.bindPopup(popup_6cad2bcdc9985490094c529472b9f321)
+        ;
+
+        
+    
+    
+            marker_80f0eb6f2d35e83c762f55fd0e94e3b8.bindTooltip(
+                `<div>
+                     TVOC: 40.0 ppb - 🌿 Aire Limpio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_80f0eb6f2d35e83c762f55fd0e94e3b8.setIcon(icon_d80f6c4f1c4de55f36b13448eb206bb8);
+            
+    
+            var marker_dcb63ef39eb84ca416f18c2ac77bab80 = L.marker(
+                [40.57944043296799, -3.9181982173908936],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_9121c243dda2adff0bbf8309c7e26b81 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_bd5313321b8902fc8618d06331d44c78 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_42cf0203d5aa2ecf87505b772487d3c2 = $(`<div id="html_42cf0203d5aa2ecf87505b772487d3c2" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #8</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 35.0s<br>                 <b>📍 Posición:</b> 40.579440, -3.918198<br>                 <b>📏 Altitud:</b> 379.3 m<br>                 <b>🛰️  Satélites:</b> 8.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">62.0 ppb</span><br>                 <b>💨 eCO2:</b> 400.0 ppm<br>                 <b>🔬 H2 raw:</b> 12376.0<br>                 <b>🔬 Ethanol raw:</b> 17282.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🌿 Aire Limpio             </div>             </div>`)[0];
+                popup_bd5313321b8902fc8618d06331d44c78.setContent(html_42cf0203d5aa2ecf87505b772487d3c2);
+            
+        
+
+        marker_dcb63ef39eb84ca416f18c2ac77bab80.bindPopup(popup_bd5313321b8902fc8618d06331d44c78)
+        ;
+
+        
+    
+    
+            marker_dcb63ef39eb84ca416f18c2ac77bab80.bindTooltip(
+                `<div>
+                     TVOC: 62.0 ppb - 🌿 Aire Limpio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_dcb63ef39eb84ca416f18c2ac77bab80.setIcon(icon_9121c243dda2adff0bbf8309c7e26b81);
+            
+    
+            var marker_a1fc88010dbbca2b1c9c0d7b5a9c0f1b = L.marker(
+                [40.57949702939407, -3.918157419791523],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_14cd0599b8247147fc9a7c6d8299da77 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_56434c0d8fd557203a293a89202b0832 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_2bc98b8a43dea714b274065b3432cfcb = $(`<div id="html_2bc98b8a43dea714b274065b3432cfcb" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #9</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 40.0s<br>                 <b>📍 Posición:</b> 40.579497, -3.918157<br>                 <b>📏 Altitud:</b> 362.1 m<br>                 <b>🛰️  Satélites:</b> 8.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #7FFF00; font-weight: bold;">339.0 ppb</span><br>                 <b>💨 eCO2:</b> 570.0 ppm<br>                 <b>🔬 H2 raw:</b> 12458.0<br>                 <b>🔬 Ethanol raw:</b> 17558.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #7FFF00;">Buena</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_56434c0d8fd557203a293a89202b0832.setContent(html_2bc98b8a43dea714b274065b3432cfcb);
+            
+        
+
+        marker_a1fc88010dbbca2b1c9c0d7b5a9c0f1b.bindPopup(popup_56434c0d8fd557203a293a89202b0832)
+        ;
+
+        
+    
+    
+            marker_a1fc88010dbbca2b1c9c0d7b5a9c0f1b.bindTooltip(
+                `<div>
+                     TVOC: 339.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_a1fc88010dbbca2b1c9c0d7b5a9c0f1b.setIcon(icon_14cd0599b8247147fc9a7c6d8299da77);
+            
+    
+            var marker_c97853bf7a860203b4818e966061c9ea = L.marker(
+                [40.579576115255605, -3.918107686560055],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_3cd4167f8bab2a2f3419ab4d8ab59c68 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_67090585b761f33dc1636042bb0a8cf8 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_1db4fe2f0d2450cfaa700926f3719230 = $(`<div id="html_1db4fe2f0d2450cfaa700926f3719230" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #10</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 45.0s<br>                 <b>📍 Posición:</b> 40.579576, -3.918108<br>                 <b>📏 Altitud:</b> 344.8 m<br>                 <b>🛰️  Satélites:</b> 6.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #7FFF00; font-weight: bold;">347.0 ppb</span><br>                 <b>💨 eCO2:</b> 649.0 ppm<br>                 <b>🔬 H2 raw:</b> 12610.0<br>                 <b>🔬 Ethanol raw:</b> 17517.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #7FFF00;">Buena</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_67090585b761f33dc1636042bb0a8cf8.setContent(html_1db4fe2f0d2450cfaa700926f3719230);
+            
+        
+
+        marker_c97853bf7a860203b4818e966061c9ea.bindPopup(popup_67090585b761f33dc1636042bb0a8cf8)
+        ;
+
+        
+    
+    
+            marker_c97853bf7a860203b4818e966061c9ea.bindTooltip(
+                `<div>
+                     TVOC: 347.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_c97853bf7a860203b4818e966061c9ea.setIcon(icon_3cd4167f8bab2a2f3419ab4d8ab59c68);
+            
+    
+            var marker_39bba073cb42ced295cb299cc8148dac = L.marker(
+                [40.57963502099549, -3.918067787747993],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_7a425565679ed2d141cd460c0682c8c0 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_f37f3df7538064f28adc5c7e6ebe36f0 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_ca4330bb47a8456fc7e630893d709fb3 = $(`<div id="html_ca4330bb47a8456fc7e630893d709fb3" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #11</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 50.0s<br>                 <b>📍 Posición:</b> 40.579635, -3.918068<br>                 <b>📏 Altitud:</b> 327.6 m<br>                 <b>🛰️  Satélites:</b> 8.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #7FFF00; font-weight: bold;">314.0 ppb</span><br>                 <b>💨 eCO2:</b> 500.0 ppm<br>                 <b>🔬 H2 raw:</b> 12433.0<br>                 <b>🔬 Ethanol raw:</b> 17573.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #7FFF00;">Buena</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_f37f3df7538064f28adc5c7e6ebe36f0.setContent(html_ca4330bb47a8456fc7e630893d709fb3);
+            
+        
+
+        marker_39bba073cb42ced295cb299cc8148dac.bindPopup(popup_f37f3df7538064f28adc5c7e6ebe36f0)
+        ;
+
+        
+    
+    
+            marker_39bba073cb42ced295cb299cc8148dac.bindTooltip(
+                `<div>
+                     TVOC: 314.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_39bba073cb42ced295cb299cc8148dac.setIcon(icon_7a425565679ed2d141cd460c0682c8c0);
+            
+    
+            var marker_9c26bb525fadec3d6bf26497bebf04fb = L.marker(
+                [40.57970396339211, -3.91803897597236],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_3c4cabb504bb9ee00dc422996f44c135 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_6593bb5a66e95cc136c6f9101e826aa2 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_9623540e4b32bdae95c3a85128f8f57a = $(`<div id="html_9623540e4b32bdae95c3a85128f8f57a" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #12</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 55.0s<br>                 <b>📍 Posición:</b> 40.579704, -3.918039<br>                 <b>📏 Altitud:</b> 310.3 m<br>                 <b>🛰️  Satélites:</b> 10.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #7FFF00; font-weight: bold;">309.0 ppb</span><br>                 <b>💨 eCO2:</b> 545.0 ppm<br>                 <b>🔬 H2 raw:</b> 12671.0<br>                 <b>🔬 Ethanol raw:</b> 17432.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #7FFF00;">Buena</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_6593bb5a66e95cc136c6f9101e826aa2.setContent(html_9623540e4b32bdae95c3a85128f8f57a);
+            
+        
+
+        marker_9c26bb525fadec3d6bf26497bebf04fb.bindPopup(popup_6593bb5a66e95cc136c6f9101e826aa2)
+        ;
+
+        
+    
+    
+            marker_9c26bb525fadec3d6bf26497bebf04fb.bindTooltip(
+                `<div>
+                     TVOC: 309.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_9c26bb525fadec3d6bf26497bebf04fb.setIcon(icon_3c4cabb504bb9ee00dc422996f44c135);
+            
+    
+            var marker_266d30d700945db753fc819a6a091816 = L.marker(
+                [40.57978000582961, -3.9180073633793753],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_ff682efd3ebf6462587e6c8ca9e45c7a = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_e3f604ff3eb7ee1a535864fd3165fd78 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_3fdea6b378168544fd371cc40c32ef87 = $(`<div id="html_3fdea6b378168544fd371cc40c32ef87" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #13</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 60.0s<br>                 <b>📍 Posición:</b> 40.579780, -3.918007<br>                 <b>📏 Altitud:</b> 293.1 m<br>                 <b>🛰️  Satélites:</b> 11.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #7FFF00; font-weight: bold;">329.0 ppb</span><br>                 <b>💨 eCO2:</b> 562.0 ppm<br>                 <b>🔬 H2 raw:</b> 12696.0<br>                 <b>🔬 Ethanol raw:</b> 17641.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #7FFF00;">Buena</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_e3f604ff3eb7ee1a535864fd3165fd78.setContent(html_3fdea6b378168544fd371cc40c32ef87);
+            
+        
+
+        marker_266d30d700945db753fc819a6a091816.bindPopup(popup_e3f604ff3eb7ee1a535864fd3165fd78)
+        ;
+
+        
+    
+    
+            marker_266d30d700945db753fc819a6a091816.bindTooltip(
+                `<div>
+                     TVOC: 329.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_266d30d700945db753fc819a6a091816.setIcon(icon_ff682efd3ebf6462587e6c8ca9e45c7a);
+            
+    
+            var marker_63067f83685cca07b98649bb9b3b652f = L.marker(
+                [40.57982741892169, -3.917974735174887],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_9a0a4a2d80f01f7393737a7e776eb3f6 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_9b439d327b23d8d8a4932b43bb8635c3 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_bc2ec5d4e553a0bd1fb2b98c8f550fd4 = $(`<div id="html_bc2ec5d4e553a0bd1fb2b98c8f550fd4" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #14</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 65.0s<br>                 <b>📍 Posición:</b> 40.579827, -3.917975<br>                 <b>📏 Altitud:</b> 275.9 m<br>                 <b>🛰️  Satélites:</b> 8.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">201.0 ppb</span><br>                 <b>💨 eCO2:</b> 461.0 ppm<br>                 <b>🔬 H2 raw:</b> 12709.0<br>                 <b>🔬 Ethanol raw:</b> 17585.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_9b439d327b23d8d8a4932b43bb8635c3.setContent(html_bc2ec5d4e553a0bd1fb2b98c8f550fd4);
+            
+        
+
+        marker_63067f83685cca07b98649bb9b3b652f.bindPopup(popup_9b439d327b23d8d8a4932b43bb8635c3)
+        ;
+
+        
+    
+    
+            marker_63067f83685cca07b98649bb9b3b652f.bindTooltip(
+                `<div>
+                     TVOC: 201.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_63067f83685cca07b98649bb9b3b652f.setIcon(icon_9a0a4a2d80f01f7393737a7e776eb3f6);
+            
+    
+            var marker_2d5821fe3ccaa8aa240b91328555142b = L.marker(
+                [40.57989826806305, -3.9179520265992136],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_65581b43af6cda93fe1259636960c906 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_fe05eb040f0062b1eae1b742d993090f = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_5f3643f750d219ac97366e003ee09237 = $(`<div id="html_5f3643f750d219ac97366e003ee09237" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #15</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 70.0s<br>                 <b>📍 Posición:</b> 40.579898, -3.917952<br>                 <b>📏 Altitud:</b> 258.6 m<br>                 <b>🛰️  Satélites:</b> 6.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #7FFF00; font-weight: bold;">280.0 ppb</span><br>                 <b>💨 eCO2:</b> 562.0 ppm<br>                 <b>🔬 H2 raw:</b> 12280.0<br>                 <b>🔬 Ethanol raw:</b> 17312.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #7FFF00;">Buena</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_fe05eb040f0062b1eae1b742d993090f.setContent(html_5f3643f750d219ac97366e003ee09237);
+            
+        
+
+        marker_2d5821fe3ccaa8aa240b91328555142b.bindPopup(popup_fe05eb040f0062b1eae1b742d993090f)
+        ;
+
+        
+    
+    
+            marker_2d5821fe3ccaa8aa240b91328555142b.bindTooltip(
+                `<div>
+                     TVOC: 280.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_2d5821fe3ccaa8aa240b91328555142b.setIcon(icon_65581b43af6cda93fe1259636960c906);
+            
+    
+            var marker_6e181ecdecf5b3293c1435bb3786bd69 = L.marker(
+                [40.579978859883326, -3.917909957062773],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_3bf79ec221e2d19acd1de12cd388b8ba = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_21aea4f0de61d0d73fea01aa57e39b23 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_c6b58f440460bb01277ecd9a18a50b11 = $(`<div id="html_c6b58f440460bb01277ecd9a18a50b11" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #16</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 75.0s<br>                 <b>📍 Posición:</b> 40.579979, -3.917910<br>                 <b>📏 Altitud:</b> 241.4 m<br>                 <b>🛰️  Satélites:</b> 10.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">151.0 ppb</span><br>                 <b>💨 eCO2:</b> 579.0 ppm<br>                 <b>🔬 H2 raw:</b> 12419.0<br>                 <b>🔬 Ethanol raw:</b> 17765.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_21aea4f0de61d0d73fea01aa57e39b23.setContent(html_c6b58f440460bb01277ecd9a18a50b11);
+            
+        
+
+        marker_6e181ecdecf5b3293c1435bb3786bd69.bindPopup(popup_21aea4f0de61d0d73fea01aa57e39b23)
+        ;
+
+        
+    
+    
+            marker_6e181ecdecf5b3293c1435bb3786bd69.bindTooltip(
+                `<div>
+                     TVOC: 151.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_6e181ecdecf5b3293c1435bb3786bd69.setIcon(icon_3bf79ec221e2d19acd1de12cd388b8ba);
+            
+    
+            var marker_384f38847c141ec5aac74cd7fbad1658 = L.marker(
+                [40.58004331996466, -3.917872882249778],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_c10dc7a663282d8f6a03b3ba9b419d64 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_7db89e72692952500ab62f06c1f5c015 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_9ac839d7e98b7825a37bb5e4a4960967 = $(`<div id="html_9ac839d7e98b7825a37bb5e4a4960967" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #17</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 80.0s<br>                 <b>📍 Posición:</b> 40.580043, -3.917873<br>                 <b>📏 Altitud:</b> 224.1 m<br>                 <b>🛰️  Satélites:</b> 7.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #7FFF00; font-weight: bold;">236.0 ppb</span><br>                 <b>💨 eCO2:</b> 578.0 ppm<br>                 <b>🔬 H2 raw:</b> 12602.0<br>                 <b>🔬 Ethanol raw:</b> 17329.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #7FFF00;">Buena</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_7db89e72692952500ab62f06c1f5c015.setContent(html_9ac839d7e98b7825a37bb5e4a4960967);
+            
+        
+
+        marker_384f38847c141ec5aac74cd7fbad1658.bindPopup(popup_7db89e72692952500ab62f06c1f5c015)
+        ;
+
+        
+    
+    
+            marker_384f38847c141ec5aac74cd7fbad1658.bindTooltip(
+                `<div>
+                     TVOC: 236.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_384f38847c141ec5aac74cd7fbad1658.setIcon(icon_c10dc7a663282d8f6a03b3ba9b419d64);
+            
+    
+            var marker_bbeb0de0e8fc6a855d87e0f20b51972b = L.marker(
+                [40.58012555626643, -3.917823221881186],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_ef873c00baa235919ed8270a233fd341 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_0147fa6df5a3868332056c4176725168 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_87a0c0fe4553aad6e49da0f9dbaf488b = $(`<div id="html_87a0c0fe4553aad6e49da0f9dbaf488b" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #18</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 85.0s<br>                 <b>📍 Posición:</b> 40.580126, -3.917823<br>                 <b>📏 Altitud:</b> 206.9 m<br>                 <b>🛰️  Satélites:</b> 11.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #00FF00; font-weight: bold;">202.0 ppb</span><br>                 <b>💨 eCO2:</b> 621.0 ppm<br>                 <b>🔬 H2 raw:</b> 12615.0<br>                 <b>🔬 Ethanol raw:</b> 17446.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #00FF00;">Excelente</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_0147fa6df5a3868332056c4176725168.setContent(html_87a0c0fe4553aad6e49da0f9dbaf488b);
+            
+        
+
+        marker_bbeb0de0e8fc6a855d87e0f20b51972b.bindPopup(popup_0147fa6df5a3868332056c4176725168)
+        ;
+
+        
+    
+    
+            marker_bbeb0de0e8fc6a855d87e0f20b51972b.bindTooltip(
+                `<div>
+                     TVOC: 202.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_bbeb0de0e8fc6a855d87e0f20b51972b.setIcon(icon_ef873c00baa235919ed8270a233fd341);
+            
+    
+            var marker_d637e825fbeb8eda11e5c6acb4ccc2f5 = L.marker(
+                [40.580182299069584, -3.917795874161932],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_409cb3332859a7ea2a8a333cd7b185b0 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "orange",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_6390783f63a8cb9a7892a65cc2143bb1 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_00b2846cb5f6c7c236fc81e5e8998109 = $(`<div id="html_00b2846cb5f6c7c236fc81e5e8998109" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #19</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 90.0s<br>                 <b>📍 Posición:</b> 40.580182, -3.917796<br>                 <b>📏 Altitud:</b> 189.7 m<br>                 <b>🛰️  Satélites:</b> 8.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FFFF00; font-weight: bold;">938.0 ppb</span><br>                 <b>💨 eCO2:</b> 1002.0 ppm<br>                 <b>🔬 H2 raw:</b> 12983.0<br>                 <b>🔬 Ethanol raw:</b> 17622.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FFFF00;">Moderada</span><br>                 <b>🔍 Firma:</b> 🏭 Fuente Industrial             </div>             </div>`)[0];
+                popup_6390783f63a8cb9a7892a65cc2143bb1.setContent(html_00b2846cb5f6c7c236fc81e5e8998109);
+            
+        
+
+        marker_d637e825fbeb8eda11e5c6acb4ccc2f5.bindPopup(popup_6390783f63a8cb9a7892a65cc2143bb1)
+        ;
+
+        
+    
+    
+            marker_d637e825fbeb8eda11e5c6acb4ccc2f5.bindTooltip(
+                `<div>
+                     TVOC: 938.0 ppb - 🏭 Fuente Industrial
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d637e825fbeb8eda11e5c6acb4ccc2f5.setIcon(icon_409cb3332859a7ea2a8a333cd7b185b0);
+            
+    
+            var marker_38972185f44859de7f88e83580d3b2ab = L.marker(
+                [40.580246221790574, -3.917782457987761],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_93a86c096a65623bd7c4e157efe478a6 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "orange",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_6b3764cf082c004c943075b931b9b4d8 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_90bf9d83e3cb4e086882e9d31360e29c = $(`<div id="html_90bf9d83e3cb4e086882e9d31360e29c" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #20</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 95.0s<br>                 <b>📍 Posición:</b> 40.580246, -3.917782<br>                 <b>📏 Altitud:</b> 172.4 m<br>                 <b>🛰️  Satélites:</b> 6.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FFFF00; font-weight: bold;">900.0 ppb</span><br>                 <b>💨 eCO2:</b> 1093.0 ppm<br>                 <b>🔬 H2 raw:</b> 13079.0<br>                 <b>🔬 Ethanol raw:</b> 18336.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FFFF00;">Moderada</span><br>                 <b>🔍 Firma:</b> 🔥 Combustión Biomasa             </div>             </div>`)[0];
+                popup_6b3764cf082c004c943075b931b9b4d8.setContent(html_90bf9d83e3cb4e086882e9d31360e29c);
+            
+        
+
+        marker_38972185f44859de7f88e83580d3b2ab.bindPopup(popup_6b3764cf082c004c943075b931b9b4d8)
+        ;
+
+        
+    
+    
+            marker_38972185f44859de7f88e83580d3b2ab.bindTooltip(
+                `<div>
+                     TVOC: 900.0 ppb - 🔥 Combustión Biomasa
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_38972185f44859de7f88e83580d3b2ab.setIcon(icon_93a86c096a65623bd7c4e157efe478a6);
+            
+    
+            var marker_a89a36c5ed5ad6ebd413490d64c7970c = L.marker(
+                [40.58034396683252, -3.917727103987892],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_addf6f89167af8405ce75edd52758235 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_7dcde70972a37f8ea9f5be571976024c = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_1741ae0ebb4a409bc3d73bee90d9aabe = $(`<div id="html_1741ae0ebb4a409bc3d73bee90d9aabe" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #21</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 100.0s<br>                 <b>📍 Posición:</b> 40.580344, -3.917727<br>                 <b>📏 Altitud:</b> 155.2 m<br>                 <b>🛰️  Satélites:</b> 7.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FFFF00; font-weight: bold;">1109.0 ppb</span><br>                 <b>💨 eCO2:</b> 997.0 ppm<br>                 <b>🔬 H2 raw:</b> 13310.0<br>                 <b>🔬 Ethanol raw:</b> 18251.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FFFF00;">Moderada</span><br>                 <b>🔍 Firma:</b> 🚜 Generador Diésel             </div>             </div>`)[0];
+                popup_7dcde70972a37f8ea9f5be571976024c.setContent(html_1741ae0ebb4a409bc3d73bee90d9aabe);
+            
+        
+
+        marker_a89a36c5ed5ad6ebd413490d64c7970c.bindPopup(popup_7dcde70972a37f8ea9f5be571976024c)
+        ;
+
+        
+    
+    
+            marker_a89a36c5ed5ad6ebd413490d64c7970c.bindTooltip(
+                `<div>
+                     TVOC: 1109.0 ppb - 🚜 Generador Diésel
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_a89a36c5ed5ad6ebd413490d64c7970c.setIcon(icon_addf6f89167af8405ce75edd52758235);
+            
+    
+            var marker_d5d5c5379e4b11cbc89206b91ff9ebad = L.marker(
+                [40.58039601809906, -3.9176997128917694],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_eee528daf5bca28cf748b0652a79e5e8 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "orange",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_9045ffc6bc76145fd1d813a0818fc9ac = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_4880a0b43c3a4a6f095022544f897c03 = $(`<div id="html_4880a0b43c3a4a6f095022544f897c03" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #22</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 105.0s<br>                 <b>📍 Posición:</b> 40.580396, -3.917700<br>                 <b>📏 Altitud:</b> 137.9 m<br>                 <b>🛰️  Satélites:</b> 7.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #7FFF00; font-weight: bold;">643.0 ppb</span><br>                 <b>💨 eCO2:</b> 1408.0 ppm<br>                 <b>🔬 H2 raw:</b> 13000.0<br>                 <b>🔬 Ethanol raw:</b> 17623.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #7FFF00;">Buena</span><br>                 <b>🔍 Firma:</b> 🚗 Tráfico Vehicular             </div>             </div>`)[0];
+                popup_9045ffc6bc76145fd1d813a0818fc9ac.setContent(html_4880a0b43c3a4a6f095022544f897c03);
+            
+        
+
+        marker_d5d5c5379e4b11cbc89206b91ff9ebad.bindPopup(popup_9045ffc6bc76145fd1d813a0818fc9ac)
+        ;
+
+        
+    
+    
+            marker_d5d5c5379e4b11cbc89206b91ff9ebad.bindTooltip(
+                `<div>
+                     TVOC: 643.0 ppb - 🚗 Tráfico Vehicular
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d5d5c5379e4b11cbc89206b91ff9ebad.setIcon(icon_eee528daf5bca28cf748b0652a79e5e8);
+            
+    
+            var marker_02b1525498a297794f0a122f5eb7802d = L.marker(
+                [40.58046791666136, -3.917668148530348],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_fae84c09280ddafd9b7c1d0d1b63fc08 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "orange",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_da4e9e74dc8018c658b6a48812b1946b = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_fe1643ed088f0c171e08baf3ef1ebc17 = $(`<div id="html_fe1643ed088f0c171e08baf3ef1ebc17" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #23</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 110.0s<br>                 <b>📍 Posición:</b> 40.580468, -3.917668<br>                 <b>📏 Altitud:</b> 120.7 m<br>                 <b>🛰️  Satélites:</b> 9.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FFFF00; font-weight: bold;">686.0 ppb</span><br>                 <b>💨 eCO2:</b> 1125.0 ppm<br>                 <b>🔬 H2 raw:</b> 13263.0<br>                 <b>🔬 Ethanol raw:</b> 17848.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FFFF00;">Moderada</span><br>                 <b>🔍 Firma:</b> 🚗 Tráfico Vehicular             </div>             </div>`)[0];
+                popup_da4e9e74dc8018c658b6a48812b1946b.setContent(html_fe1643ed088f0c171e08baf3ef1ebc17);
+            
+        
+
+        marker_02b1525498a297794f0a122f5eb7802d.bindPopup(popup_da4e9e74dc8018c658b6a48812b1946b)
+        ;
+
+        
+    
+    
+            marker_02b1525498a297794f0a122f5eb7802d.bindTooltip(
+                `<div>
+                     TVOC: 686.0 ppb - 🚗 Tráfico Vehicular
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_02b1525498a297794f0a122f5eb7802d.setIcon(icon_fae84c09280ddafd9b7c1d0d1b63fc08);
+            
+    
+            var marker_44c047932f083887cc2c56ef4fc16d73 = L.marker(
+                [40.58052195941469, -3.917620779788836],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_85b925a9423ef3180bc715721a71dfd2 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_186bd5e4d5d3bafb97efae56e778cc68 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_f7b6acc426c74881402178475ede093e = $(`<div id="html_f7b6acc426c74881402178475ede093e" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #24</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 115.0s<br>                 <b>📍 Posición:</b> 40.580522, -3.917621<br>                 <b>📏 Altitud:</b> 103.4 m<br>                 <b>🛰️  Satélites:</b> 10.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FFFF00; font-weight: bold;">1159.0 ppb</span><br>                 <b>💨 eCO2:</b> 1202.0 ppm<br>                 <b>🔬 H2 raw:</b> 13145.0<br>                 <b>🔬 Ethanol raw:</b> 18462.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FFFF00;">Moderada</span><br>                 <b>🔍 Firma:</b> 🚜 Generador Diésel             </div>             </div>`)[0];
+                popup_186bd5e4d5d3bafb97efae56e778cc68.setContent(html_f7b6acc426c74881402178475ede093e);
+            
+        
+
+        marker_44c047932f083887cc2c56ef4fc16d73.bindPopup(popup_186bd5e4d5d3bafb97efae56e778cc68)
+        ;
+
+        
+    
+    
+            marker_44c047932f083887cc2c56ef4fc16d73.bindTooltip(
+                `<div>
+                     TVOC: 1159.0 ppb - 🚜 Generador Diésel
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_44c047932f083887cc2c56ef4fc16d73.setIcon(icon_85b925a9423ef3180bc715721a71dfd2);
+            
+    
+            var marker_9f7050a5ba837d8a2a73dddd0a169d20 = L.marker(
+                [40.58059972858654, -3.917582103797878],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_f7a76d40341a4bdf07530310c056295e = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_b92ba92dd7797a91712404d760be520b = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_767f3a7b345c67492641cc7d098a759f = $(`<div id="html_767f3a7b345c67492641cc7d098a759f" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #25</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 120.0s<br>                 <b>📍 Posición:</b> 40.580600, -3.917582<br>                 <b>📏 Altitud:</b> 86.2 m<br>                 <b>🛰️  Satélites:</b> 8.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FFFF00; font-weight: bold;">1010.0 ppb</span><br>                 <b>💨 eCO2:</b> 946.0 ppm<br>                 <b>🔬 H2 raw:</b> 12947.0<br>                 <b>🔬 Ethanol raw:</b> 18363.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FFFF00;">Moderada</span><br>                 <b>🔍 Firma:</b> 🔥 Combustión Biomasa             </div>             </div>`)[0];
+                popup_b92ba92dd7797a91712404d760be520b.setContent(html_767f3a7b345c67492641cc7d098a759f);
+            
+        
+
+        marker_9f7050a5ba837d8a2a73dddd0a169d20.bindPopup(popup_b92ba92dd7797a91712404d760be520b)
+        ;
+
+        
+    
+    
+            marker_9f7050a5ba837d8a2a73dddd0a169d20.bindTooltip(
+                `<div>
+                     TVOC: 1010.0 ppb - 🔥 Combustión Biomasa
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_9f7050a5ba837d8a2a73dddd0a169d20.setIcon(icon_f7a76d40341a4bdf07530310c056295e);
+            
+    
+            var marker_41e959e8050a370a45c73834e5977721 = L.marker(
+                [40.58067524715693, -3.9175486182332913],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_415f556d2696c18788cf8ed6c6e5b161 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_7a6cf30de07f1dfead3ab4f406777b0f = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_0b76f019d66ad445171dd08bcedefff2 = $(`<div id="html_0b76f019d66ad445171dd08bcedefff2" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #26</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 125.0s<br>                 <b>📍 Posición:</b> 40.580675, -3.917549<br>                 <b>📏 Altitud:</b> 69.0 m<br>                 <b>🛰️  Satélites:</b> 6.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FFFF00; font-weight: bold;">1988.0 ppb</span><br>                 <b>💨 eCO2:</b> 1839.0 ppm<br>                 <b>🔬 H2 raw:</b> 13550.0<br>                 <b>🔬 Ethanol raw:</b> 18337.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FFFF00;">Moderada</span><br>                 <b>🔍 Firma:</b> 🚜 Generador Diésel             </div>             </div>`)[0];
+                popup_7a6cf30de07f1dfead3ab4f406777b0f.setContent(html_0b76f019d66ad445171dd08bcedefff2);
+            
+        
+
+        marker_41e959e8050a370a45c73834e5977721.bindPopup(popup_7a6cf30de07f1dfead3ab4f406777b0f)
+        ;
+
+        
+    
+    
+            marker_41e959e8050a370a45c73834e5977721.bindTooltip(
+                `<div>
+                     TVOC: 1988.0 ppb - 🚜 Generador Diésel
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_41e959e8050a370a45c73834e5977721.setIcon(icon_415f556d2696c18788cf8ed6c6e5b161);
+            
+    
+            var marker_dc5ed3fedc4c190366d53a82786b5b92 = L.marker(
+                [40.5807315935125, -3.917531840451094],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_6f7e6271473eafa0c7eefea05d7b4a26 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_a03514a51e6490be59e5101951cde8e2 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_aff47e3b10277472092c81b8b7963772 = $(`<div id="html_aff47e3b10277472092c81b8b7963772" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #27</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 130.0s<br>                 <b>📍 Posición:</b> 40.580732, -3.917532<br>                 <b>📏 Altitud:</b> 51.7 m<br>                 <b>🛰️  Satélites:</b> 9.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FF8C00; font-weight: bold;">2371.0 ppb</span><br>                 <b>💨 eCO2:</b> 1840.0 ppm<br>                 <b>🔬 H2 raw:</b> 13778.0<br>                 <b>🔬 Ethanol raw:</b> 18472.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FF8C00;">Mala</span><br>                 <b>🔍 Firma:</b> 🚜 Generador Diésel             </div>             </div>`)[0];
+                popup_a03514a51e6490be59e5101951cde8e2.setContent(html_aff47e3b10277472092c81b8b7963772);
+            
+        
+
+        marker_dc5ed3fedc4c190366d53a82786b5b92.bindPopup(popup_a03514a51e6490be59e5101951cde8e2)
+        ;
+
+        
+    
+    
+            marker_dc5ed3fedc4c190366d53a82786b5b92.bindTooltip(
+                `<div>
+                     TVOC: 2371.0 ppb - 🚜 Generador Diésel
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_dc5ed3fedc4c190366d53a82786b5b92.setIcon(icon_6f7e6271473eafa0c7eefea05d7b4a26);
+            
+    
+            var marker_e0de4ce990031256e6a81a29f1ad451d = L.marker(
+                [40.5808158259457, -3.917492057641],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_8f0e7e48e17e872fe17f5dda3bc36149 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_42d1acb0da833c5ac23a972dd218a760 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_7ca24f3e23a9591f372caab8b298d866 = $(`<div id="html_7ca24f3e23a9591f372caab8b298d866" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #28</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 135.0s<br>                 <b>📍 Posición:</b> 40.580816, -3.917492<br>                 <b>📏 Altitud:</b> 34.5 m<br>                 <b>🛰️  Satélites:</b> 10.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FFFF00; font-weight: bold;">1650.0 ppb</span><br>                 <b>💨 eCO2:</b> 1614.0 ppm<br>                 <b>🔬 H2 raw:</b> 13989.0<br>                 <b>🔬 Ethanol raw:</b> 19321.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FFFF00;">Moderada</span><br>                 <b>🔍 Firma:</b> 🚜 Generador Diésel             </div>             </div>`)[0];
+                popup_42d1acb0da833c5ac23a972dd218a760.setContent(html_7ca24f3e23a9591f372caab8b298d866);
+            
+        
+
+        marker_e0de4ce990031256e6a81a29f1ad451d.bindPopup(popup_42d1acb0da833c5ac23a972dd218a760)
+        ;
+
+        
+    
+    
+            marker_e0de4ce990031256e6a81a29f1ad451d.bindTooltip(
+                `<div>
+                     TVOC: 1650.0 ppb - 🚜 Generador Diésel
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_e0de4ce990031256e6a81a29f1ad451d.setIcon(icon_8f0e7e48e17e872fe17f5dda3bc36149);
+            
+    
+            var marker_d15291dc4ab96d372884953440ff5036 = L.marker(
+                [40.58087502809586, -3.9174511701243055],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_1e61acecda80a147b0a0590a19f648ca = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_30e570f6ccaa76cc9f47db32ae65fd2e = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_d7b4b7c6a8d5ceeb37106408c637d718 = $(`<div id="html_d7b4b7c6a8d5ceeb37106408c637d718" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #29</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 140.0s<br>                 <b>📍 Posición:</b> 40.580875, -3.917451<br>                 <b>📏 Altitud:</b> 17.2 m<br>                 <b>🛰️  Satélites:</b> 9.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FFFF00; font-weight: bold;">1762.0 ppb</span><br>                 <b>💨 eCO2:</b> 1963.0 ppm<br>                 <b>🔬 H2 raw:</b> 13143.0<br>                 <b>🔬 Ethanol raw:</b> 18345.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FFFF00;">Moderada</span><br>                 <b>🔍 Firma:</b> 🚜 Generador Diésel             </div>             </div>`)[0];
+                popup_30e570f6ccaa76cc9f47db32ae65fd2e.setContent(html_d7b4b7c6a8d5ceeb37106408c637d718);
+            
+        
+
+        marker_d15291dc4ab96d372884953440ff5036.bindPopup(popup_30e570f6ccaa76cc9f47db32ae65fd2e)
+        ;
+
+        
+    
+    
+            marker_d15291dc4ab96d372884953440ff5036.bindTooltip(
+                `<div>
+                     TVOC: 1762.0 ppb - 🚜 Generador Diésel
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_d15291dc4ab96d372884953440ff5036.setIcon(icon_1e61acecda80a147b0a0590a19f648ca);
+            
+    
+            var marker_ca58d853598bed2b9d567401929c59fd = L.marker(
+                [40.580947083062505, -3.9174102445487287],
+                {
+}
+            ).addTo(marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2);
+        
+    
+            var icon_4234e38a9a6927c617bcc4d2d0fe786f = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_e20d87195bf8599363192d2ac5fba892 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_f22edbe0af8b46290a49f38256ad4a70 = $(`<div id="html_f22edbe0af8b46290a49f38256ad4a70" style="width: 100.0%; height: 100.0%;">             <div style="font-family: Arial; width: 250px;">                 <h4 style="margin-bottom: 5px;">📊 Medición #30</h4>                 <hr style="margin: 5px 0;">                 <b>🕐 Tiempo:</b> 145.0s<br>                 <b>📍 Posición:</b> 40.580947, -3.917410<br>                 <b>📏 Altitud:</b> 0.0 m<br>                 <b>🛰️  Satélites:</b> 11.0<br>                 <hr style="margin: 5px 0;">                 <b>🌫️  TVOC:</b> <span style="color: #FFFF00; font-weight: bold;">2123.0 ppb</span><br>                 <b>💨 eCO2:</b> 1771.0 ppm<br>                 <b>🔬 H2 raw:</b> 13880.0<br>                 <b>🔬 Ethanol raw:</b> 18001.0<br>                 <hr style="margin: 5px 0;">                 <b>📈 Calidad:</b> <span style="color: #FFFF00;">Moderada</span><br>                 <b>🔍 Firma:</b> 🚜 Generador Diésel             </div>             </div>`)[0];
+                popup_e20d87195bf8599363192d2ac5fba892.setContent(html_f22edbe0af8b46290a49f38256ad4a70);
+            
+        
+
+        marker_ca58d853598bed2b9d567401929c59fd.bindPopup(popup_e20d87195bf8599363192d2ac5fba892)
+        ;
+
+        
+    
+    
+            marker_ca58d853598bed2b9d567401929c59fd.bindTooltip(
+                `<div>
+                     TVOC: 2123.0 ppb - 🚜 Generador Diésel
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_ca58d853598bed2b9d567401929c59fd.setIcon(icon_4234e38a9a6927c617bcc4d2d0fe786f);
+            
+    
+            marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2.addTo(map_4bfa41619db32186794d9e9f6241ccdc);
+        
+    
+            var poly_line_bdcd8fb064537a2d727e66b6192ba587 = L.polyline(
+                [[40.57895496714153, -3.918426017066122], [40.57901758287423, -3.918366994459534], [40.57909440791986, -3.918351169455006], [40.57917212685029, -3.918327128833428], [40.57922352053522, -3.918273843516396], [40.57929248621663, -3.918259794643396], [40.5793795852316, -3.9182110148123255], [40.57944043296799, -3.9181982173908936], [40.57949702939407, -3.918157419791523], [40.579576115255605, -3.918107686560055], [40.57963502099549, -3.918067787747993], [40.57970396339211, -3.91803897597236], [40.57978000582961, -3.9180073633793753], [40.57982741892169, -3.917974735174887], [40.57989826806305, -3.9179520265992136], [40.579978859883326, -3.917909957062773], [40.58004331996466, -3.917872882249778], [40.58012555626643, -3.917823221881186], [40.580182299069584, -3.917795874161932], [40.580246221790574, -3.917782457987761], [40.58034396683252, -3.917727103987892], [40.58039601809906, -3.9176997128917694], [40.58046791666136, -3.917668148530348], [40.58052195941469, -3.917620779788836], [40.58059972858654, -3.917582103797878], [40.58067524715693, -3.9175486182332913], [40.5807315935125, -3.917531840451094], [40.5808158259457, -3.917492057641], [40.58087502809586, -3.9174511701243055], [40.580947083062505, -3.9174102445487287]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.7, "smoothFactor": 1.0, "stroke": true, "weight": 3}
+            ).addTo(map_4bfa41619db32186794d9e9f6241ccdc);
+        
+    
+        var popup_7229fd6501d9f5b4c8cf31de0dd164c7 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_1cfce4f2b72995ebd30a273bc911bb96 = $(`<div id="html_1cfce4f2b72995ebd30a273bc911bb96" style="width: 100.0%; height: 100.0%;">Trayectoria del CanSat</div>`)[0];
+                popup_7229fd6501d9f5b4c8cf31de0dd164c7.setContent(html_1cfce4f2b72995ebd30a273bc911bb96);
+            
+        
+
+        poly_line_bdcd8fb064537a2d727e66b6192ba587.bindPopup(popup_7229fd6501d9f5b4c8cf31de0dd164c7)
+        ;
+
+        
+    
+    
+            var marker_8b316498d839ae0a2c30847e371ab9f1 = L.marker(
+                [40.57895496714153, -3.918426017066122],
+                {
+}
+            ).addTo(map_4bfa41619db32186794d9e9f6241ccdc);
+        
+    
+            var icon_d5f2eae460b39fe797faeb68b8e3aef2 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "play",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_32c4a169999598f1e6247a35c6be0aab = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_543a88d2ed2adca7669cb8607d728361 = $(`<div id="html_543a88d2ed2adca7669cb8607d728361" style="width: 100.0%; height: 100.0%;">🚀 Inicio</div>`)[0];
+                popup_32c4a169999598f1e6247a35c6be0aab.setContent(html_543a88d2ed2adca7669cb8607d728361);
+            
+        
+
+        marker_8b316498d839ae0a2c30847e371ab9f1.bindPopup(popup_32c4a169999598f1e6247a35c6be0aab)
+        ;
+
+        
+    
+    
+                marker_8b316498d839ae0a2c30847e371ab9f1.setIcon(icon_d5f2eae460b39fe797faeb68b8e3aef2);
+            
+    
+            var marker_3662484539cc52a40b2408d7d56c9129 = L.marker(
+                [40.580947083062505, -3.9174102445487287],
+                {
+}
+            ).addTo(map_4bfa41619db32186794d9e9f6241ccdc);
+        
+    
+            var icon_4fa4c8768dd03110246eca5c1c9fb055 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "stop",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_c9c067a54c3d6216d93d0930492dbe2f = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_0f2574151a4d6216e45935cc9590092e = $(`<div id="html_0f2574151a4d6216e45935cc9590092e" style="width: 100.0%; height: 100.0%;">🎯 Aterrizaje</div>`)[0];
+                popup_c9c067a54c3d6216d93d0930492dbe2f.setContent(html_0f2574151a4d6216e45935cc9590092e);
+            
+        
+
+        marker_3662484539cc52a40b2408d7d56c9129.bindPopup(popup_c9c067a54c3d6216d93d0930492dbe2f)
+        ;
+
+        
+    
+    
+                marker_3662484539cc52a40b2408d7d56c9129.setIcon(icon_4fa4c8768dd03110246eca5c1c9fb055);
+            
+    
+            var layer_control_cb631dd7770acd76bcbc7814a1890b7e_layers = {
+                base_layers : {
+                    "openstreetmap" : tile_layer_8d6a47ceb95ad48cba856f92c82987b2,
+                },
+                overlays :  {
+                    "Mapa de Calor TVOC" : heat_map_1a59c2744b4a1c267a13b0b8f2e3fb5e,
+                    "Puntos de Medici\u00f3n" : marker_cluster_b32e09bb4a88b24fa9fb8f1023d683c2,
+                },
+            };
+            let layer_control_cb631dd7770acd76bcbc7814a1890b7e = L.control.layers(
+                layer_control_cb631dd7770acd76bcbc7814a1890b7e_layers.base_layers,
+                layer_control_cb631dd7770acd76bcbc7814a1890b7e_layers.overlays,
+                {
+  "position": "topright",
+  "collapsed": true,
+  "autoZIndex": true,
+}
+            ).addTo(map_4bfa41619db32186794d9e9f6241ccdc);
+
+        
+</script>
+</html>
