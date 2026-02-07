@@ -1,163 +1,94 @@
 /*
- * ========================================================================
- * PROGRAMA 4: GPS - POSICIÓN Y ALTITUD (PRUEBAS)
- * ========================================================================
- * 
- * Autor: CanSat Misión 2
- * Fecha: Enero 2026
- * Proyecto: CanSat Misión 2
- * 
- * SENSOR: ATGM336H (o compatible NEO-6M/7M/8M)
- /*
- * PROGRAMA 3: GPS - POSICIÓN Y ALTITUD
- * ADAPTADO A ARDUINO NANO 33 BLE SENSE
+ * =========================================================================
+ * TEST DE SENSOR GPS - ARDUINO NANO 33 BLE SENSE
+ * =========================================================================
+ * CONEXIÓN:
+ * GPS TX  -->  Pin D0 (RX) del Arduino
+ * GPS RX  -->  Pin D1 (TX) del Arduino
+ * * NOTA: En este modelo de Arduino, puedes cargar el programa sin 
+ * desconectar el GPS de los pines 0 y 1. No hay conflicto con el USB.
+ * =========================================================================
  */
 
- // NO SoftwareSerial en Nano 33 BLE
-#include <Arduino.h>
+#define gpsSerial Serial1 // Serial1 usa los pines D0 y D1
 
-// UART real en D6 (TX) y D5 (RX)
-//UART gpsSerial(digitalPinToPinName(6), digitalPinToPinName(5), NC, NC);
-
-// Variables GPS
-String gpsData = "";
-float gps_lat = 0.0, gps_lon = 0.0;
-float gps_alt = 0.0;
-int gps_satellites = 0;
-boolean gps_fix = false;
-
-int contador = 0;
-unsigned long lastFixTime = 0;
+// Variables para el procesado simple
+String gpsBuffer = "";
+int satelites = 0;
+float latitud = 0, longitud = 0, altitudGPS = 0;
+bool tieneFix = false;
 
 void setup() {
+  // El monitor serie del PC va a 115200
   Serial.begin(115200);
-  while (!Serial);
+  while (!Serial); 
 
+  // El GPS suele venir de fábrica a 9600
   gpsSerial.begin(9600);
 
-  delay(2000);
-  
-  Serial.println();
-  Serial.println("╔════════════════════════════════════════╗");
-  Serial.println("║  Programa 3: GPS (Nano 33 BLE Sense)  ║");
-  Serial.println("╚════════════════════════════════════════╝");
-  Serial.println("⏳ Esperando señal GPS...");
+  Serial.println("========================================");
+  Serial.println("   TEST DE SENSOR GPS - NANO 33 BLE     ");
+  Serial.println("========================================");
+  Serial.println("Buscando satelites... (Sal fuera si no hay señal)");
 }
 
 void loop() {
-  // LEER DATOS GPS
+  // 1. Leer datos del GPS
   while (gpsSerial.available()) {
     char c = gpsSerial.read();
-    gpsData += c;
+    gpsBuffer += c;
 
-    Serial.write(c); 
-    
+    // Si llega un fin de línea, procesamos la sentencia
     if (c == '\n') {
-      parseGPS(gpsData);
-      gpsData = "";
+      procesarNMEA(gpsBuffer);
+      gpsBuffer = "";
     }
   }
-  
-  if (contador % 20 == 0) {
-    Serial.println();
-    if (gps_fix) {
-      Serial.println("N° | Status | Sat | Lat | Lon | Alt | Fix_Time");
-      Serial.println("───┼────────┼─────┼─────┼─────┼─────┼──────────");
+
+  // 2. Mostrar resumen cada 2 segundos
+  static unsigned long lastPrint = 0;
+  if (millis() - lastPrint > 2000) {
+    Serial.println("\n--- ESTADO ACTUAL DEL GPS ---");
+    if (tieneFix) {
+      Serial.print(" [OK] FIX CONSEGUIDO!");
     } else {
-      Serial.println("N° | Status | Sat");
-      Serial.println("───┼────────┼─────");
+      Serial.print(" [..] BUSCANDO SEÑAL...");
     }
-  }
-  
-  Serial.print(contador);
-  Serial.print(" | ");
-  
-  if (gps_fix) Serial.print("✓ FIX  | ");
-  else Serial.print("⏳ Wait | ");
-  
-  Serial.print(gps_satellites);
-  Serial.print("  | ");
-  
-  if (gps_fix) {
-    Serial.print(gps_lat, 4);
-    Serial.print(" | ");
-    Serial.print(gps_lon, 4);
-    Serial.print(" | ");
-    Serial.print(gps_alt, 1);
-    Serial.print("m | ");
-    Serial.print((millis() - lastFixTime) / 1000);
-    Serial.print("s");
-  }
-  
-  Serial.println();
-  
-  contador++;
-  delay(1000);
-}
-
-void parseGPS(String sentence) {
-  if (sentence.length() < 6) return;
-  
-  if (sentence.startsWith("$GNGGA") || sentence.startsWith("$GPGGA")) {
-    parseGGA(sentence);
-  } 
-  else if (sentence.startsWith("$GNRMC") || sentence.startsWith("$GPRMC")) {
-    parseRMC(sentence);
+    
+    Serial.print(" | Satelites: "); Serial.println(satelites);
+    Serial.print(" Latitud: ");  Serial.println(latitud, 6);
+    Serial.print(" Longitud: "); Serial.println(longitud, 6);
+    Serial.print(" Altitud: ");  Serial.print(altitudGPS); Serial.println(" m");
+    Serial.println("-----------------------------");
+    
+    lastPrint = millis();
   }
 }
 
-void parseRMC(String sentence) {
-  int commaCount = 0;
-  int lastIndex = 0;
-  
-  for (int i = 0; i < sentence.length(); i++) {
-    if (sentence[i] == ',' || sentence[i] == '\n') {
-      String field = sentence.substring(lastIndex, i);
+void procesarNMEA(String sen) {
+  // Buscamos la sentencia $GNGGA o $GPGGA (contiene posición y satélites)
+  if (sen.startsWith("$GNGGA") || sen.startsWith("$GPGGA")) {
+    
+    // Dividimos por comas (formato NMEA estándar)
+    // Ejemplo: $GPGGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*hh
+    int indices[15];
+    int count = 0;
+    for (int i = 0; i < sen.length() && count < 15; i++) {
+      if (sen[i] == ',') indices[count++] = i;
+    }
+
+    if (count >= 10) {
+      satelites = sen.substring(indices[6] + 1, indices[7]).toInt();
       
-      if (commaCount == 2) {
-        gps_fix = (field == "A");
-        if (gps_fix) lastFixTime = millis();
-      } 
-      else if (commaCount == 3) {
-        gps_lat = parseCoordinate(field);
-      } 
-      else if (commaCount == 5) {
-        gps_lon = parseCoordinate(field);
+      if (satelites > 0) {
+        tieneFix = true;
+        // Parseo simple de lat/lon (formato grados y minutos decimales)
+        latitud = sen.substring(indices[1] + 1, indices[2]).toFloat() / 100.0;
+        longitud = sen.substring(indices[3] + 1, indices[4]).toFloat() / 100.0;
+        altitudGPS = sen.substring(indices[8] + 1, indices[9]).toFloat();
+      } else {
+        tieneFix = false;
       }
-      
-      lastIndex = i + 1;
-      commaCount++;
     }
   }
-}
-
-void parseGGA(String sentence) {
-  int commaCount = 0;
-  int lastIndex = 0;
-  
-  for (int i = 0; i < sentence.length(); i++) {
-    if (sentence[i] == ',' || sentence[i] == '\n') {
-      String field = sentence.substring(lastIndex, i);
-      
-      if (commaCount == 7) gps_satellites = field.toInt();
-      else if (commaCount == 9 && field.length() > 0) gps_alt = field.toFloat();
-      
-      lastIndex = i + 1;
-      commaCount++;
-    }
-  }
-}
-
-float parseCoordinate(String coord) {
-  if (coord.length() < 5) return 0.0;
-  
-  int dotIndex = coord.indexOf('.');
-  int degreeDigits = dotIndex - 2;
-  
-  if (degreeDigits <= 0) return 0.0;
-  
-  float degrees = coord.substring(0, degreeDigits).toFloat();
-  float minutes = coord.substring(degreeDigits).toFloat();
-  
-  return degrees + (minutes / 60.0);
 }
