@@ -35,7 +35,7 @@
 ```
 cansat-mision2/
 │
-├── design/                          # Todo lo que se diseñó (3D, PCB, Telas)
+├── design/                         
 │   ├── structural/                  # Carcasa
 │   ├── recovery/                    # Paracaídas
 │   ├── electronics/                 # Circuitos
