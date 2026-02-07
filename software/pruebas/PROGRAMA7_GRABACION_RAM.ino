@@ -1,6 +1,6 @@
 /*
  * ============================================
- * GRABACIÓN EN RAM - SOLO SENSORES INTERNOS REV2
+ * CANSAT RAM - SOLO SENSORES INTERNOS REV2
  * Arduino Nano 33 BLE Sense
  * ============================================
  */
@@ -170,4 +170,18 @@ void exportarCSV() {
     Serial.print(d.altitud); Serial.print(",");
     Serial.print(d.accX / 100.0); Serial.print(",");
     Serial.print(d.accY / 100.0); Serial.print(",");
-    Serial.print(d.accZ / 100.0); Serial.println(
+    Serial.print(d.accZ / 100.0); Serial.println();
+  }
+}
+
+// ============================================
+
+void borrarDatos() {
+  numRegistros = 0;
+  Serial.println("DATOS BORRADOS");
+}
+
+void mostrarEstado() {
+  Serial.print("Registros: ");
+  Serial.println(numRegistros);
+}
