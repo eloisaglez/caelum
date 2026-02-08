@@ -8,7 +8,7 @@
  * - Pin D0 (RX): Conectar TX del GPS
  * - Pin D1 (TX): Conectar RX de la Radio APC220
  * - SDA / SCL: Sensor de CO2 SCD40
- * - VIN / GND: Batería de alimentación (7V-12V)
+ * - VIN / GND: Batería de alimentación (3.7V-12V)
  * =========================================================================
  */
 
