@@ -1,139 +1,195 @@
 /*
  * =========================================================================
- * CANSAT RAM - PROGRAMA INTEGRADO DE MISIÓN FINAL
- * =========================================================================
+ * PROGRAMA DE PRUEBA GPS - CANSAT (FINAL)
  * PLACA: Arduino Nano 33 BLE Sense
- * SENSORES: GPS (Serial1), SCD40/41 (I2C), APC220 (Serial1)
- * * CONEXIÓN DE PINES:
- * - Pin D0 (RX): Conectar TX del GPS
- * - Pin D1 (TX): Conectar RX de la Radio APC220
- * - SDA / SCL: Sensor de CO2 SCD40
- * - VIN / GND: Batería de alimentación (3.7V-12V)
+ * =========================================================================
+ * CONEXIÓN DE HARDWARE:
+ * - GPS TX  --> Arduino RX (Pin 0)
+ * - GPS RX  --> Arduino TX (Pin 1)
+ * - GPS VCC --> 3.3V (o 5V según modelo)
+ * - GPS GND --> GND
  * =========================================================================
  */
 
-#include <SensirionI2cScd4x.h>
-#include <Wire.h>
+#include <Arduino.h>
 
-// Definición del puerto para GPS y Radio
-#define telemetriaSerial Serial1 
+// Definimos el puerto del GPS/Radio para que sea fácil de leer
+#define gpsPort Serial1 
 
-// --- VARIABLES GPS ---
-String gpsBuffer = "";
-int satelites = 0;
-float latitud = 0, longitud = 0, altitudGPS = 0;
-bool tieneFix = false;
-unsigned long ultimoDatoRecibido = 0;
-const unsigned long TIMEOUT_CONEXION = 3000; 
+// --- VARIABLES GLOBALES ---
+String gpsData = "";
+float gps_lat = 0.0;
+float gps_lon = 0.0;
+float gps_alt = 0.0;
+int gps_satellites = 0;
+boolean gps_fix = false;
 
-// --- VARIABLES SCD40 (CO2) ---
-SensirionI2cScd4x scd4x;
-uint16_t co2 = 0;
-float temperatura = 0.0, humedad = 0.0;
+int contador = 0;
+unsigned long lastFixTime = 0;
 
 void setup() {
-  // Ambas comunicaciones a 9600 para máxima estabilidad de radio
-  Serial.begin(9600);           // Monitor USB (PC)
-  telemetriaSerial.begin(9600); // Radio y GPS (Misión)
+  // 1. INICIAR PUERTO USB (Para el ordenador)
+  Serial.begin(115200); 
 
-  // --- CONTROL DE ARRANQUE AUTÓNOMO Y GESTIÓN DE ENERGÍA ---
-  unsigned long ventanaEspera = millis();
-  while (!Serial && millis() - ventanaEspera < 5000) {
-    // Esta espera de 5s permite abrir el Monitor Serie durante las pruebas.
-    // Si no se detecta USB (vuelo con batería), el programa rompe el bucle 
-    // y toma el control de forma autónoma para evitar que el sistema se 
-    // quede bloqueado esperando un cable, garantizando el envío de telemetría.
+  // -----------------------------------------------------------------------
+  // 2. BLOQUE DE ARRANQUE INTELIGENTE (Seguridad + Modo Vuelo)
+  // -----------------------------------------------------------------------
+  
+  // Paso A: Esperar al USB (Máximo 4 segundos)
+  // Si estamos en el laboratorio, esto espera a que abras el monitor.
+  // Si estamos en el cohete (batería), se salta esto tras 4s.
+  unsigned long inicio = millis();
+  while (!Serial && millis() - inicio < 4000) {
+    // Esperando conexión...
   }
 
-  // Inicialización del bus I2C y sensor de CO2
-  Wire.begin();
-  scd4x.begin(Wire, SCD41_I2C_ADDR_62);
-  
-  // Reiniciar sensor para asegurar lectura limpia
-  scd4x.stopPeriodicMeasurement();
-  delay(500);
-  scd4x.startPeriodicMeasurement();
+  Serial.println("--- SISTEMA DE ARRANQUE CANSAT ---");
 
-  Serial.println("SISTEMA CANSAT RAM: INICIADO");
-  telemetriaSerial.println("RADIO_OK: TRANSMISION INICIADA");
+  // Paso B: Cuenta atrás de seguridad (Vital para evitar 'Port Busy')
+  // Da tiempo a estabilizar el sistema antes de abrir el puerto ruidoso del GPS.
+  for(int i = 5; i > 0; i--) {
+     if(Serial) {
+       Serial.print("⚠️ Activando GPS en: ");
+       Serial.println(i);
+     }
+     delay(1000); 
+  }
+  
+  if(Serial) Serial.println("✅ ACTIVANDO PUERTO SERIAL1 (GPS/RADIO)...");
+
+  // -----------------------------------------------------------------------
+  // 3. INICIAR GPS (Puerto Hardware)
+  // -----------------------------------------------------------------------
+  gpsPort.begin(9600); // La mayoría de GPS funcionan a 9600 baudios
 }
 
 void loop() {
-  // 1. LECTURA DEL GPS (Entrada por Pin 0)
-  while (telemetriaSerial.available()) {
-    char c = telemetriaSerial.read();
-    gpsBuffer += c;
-    ultimoDatoRecibido = millis(); // Pulso de vida del GPS
-
+  // -----------------------------------------------------------------------
+  // LECTURA DE DATOS (Lo que entra por el Pin 0)
+  // -----------------------------------------------------------------------
+  while (gpsPort.available()) {
+    char c = gpsPort.read();
+    gpsData += c;
+    
+    // Si detectamos un salto de línea, procesamos la frase completa
     if (c == '\n') {
-      procesarSentenciaNMEA(gpsBuffer);
-      gpsBuffer = "";
+      parseGPS(gpsData);
+      gpsData = ""; // Limpiar buffer para la siguiente frase
     }
   }
-
-  // 2. ENVÍO DE TELEMETRÍA CADA 2 SEGUNDOS (Salida por Pin 1)
-  static unsigned long ultimaTransmision = 0;
-  if (millis() - ultimaTransmision > 2000) {
-    
-    // Leer datos del sensor de CO2
-    bool scdListos = false;
-    scd4x.getDataReadyStatus(scdListos);
-    if (scdListos) {
-      scd4x.readMeasurement(co2, temperatura, humedad);
-    }
-
-    // --- LÓGICA DE SALIDA ---
-    if (millis() - ultimoDatoRecibido > TIMEOUT_CONEXION) {
-      // Si el sensor GPS no responde o el cable está suelto
-      String errorMsg = "ALERTA: [CHECK GPS WIRE]";
-      Serial.println(errorMsg);
-      telemetriaSerial.println(errorMsg);
-    } 
-    else {
-      // CONSTRUCCIÓN DE LA TRAMA CSV (Para Excel posterior)
-      // Formato: Milisegundos, Satélites, Lat, Lon, Alt, CO2, Temp, Hum
-      String datos = String(millis()) + "," +
-                     String(satelites) + "," +
-                     (tieneFix ? String(latitud, 6) : "XXXXXX") + "," +
-                     (tieneFix ? String(longitud, 6) : "XXXXXX") + "," +
-                     String(altitudGPS, 1) + "," +
-                     String(co2) + "," +
-                     String(temperatura, 1) + "," +
-                     String(humedad, 1);
-
-      // Enviar a la vez por cable (PC) y por Radio (Misión)
-      Serial.println(datos);
-      telemetriaSerial.println(datos);
-    }
-    
-    ultimaTransmision = millis();
+  
+  // -----------------------------------------------------------------------
+  // MOSTRAR DATOS (Solo cada cierto tiempo para no saturar la pantalla)
+  // -----------------------------------------------------------------------
+  static unsigned long ultimaImpresion = 0;
+  
+  // Imprimimos cada 1 segundo (1000 ms)
+  if (millis() - ultimaImpresion > 1000) {
+      
+      // Solo imprimimos si hay un cable USB conectado
+      if(Serial) {
+        Serial.println("\n--------------------------------------------------");
+        if (gps_fix) {
+          Serial.println("ESTADO: FIJADO (FIX OK) ✅");
+          Serial.print("Satélites: "); Serial.println(gps_satellites);
+          Serial.print("Latitud:   "); Serial.println(gps_lat, 6);
+          Serial.print("Longitud:  "); Serial.println(gps_lon, 6);
+          Serial.print("Altitud:   "); Serial.print(gps_alt); Serial.println(" m");
+        } else {
+          Serial.println("ESTADO: BUSCANDO SATÉLITES... ⏳");
+          Serial.print("Satélites vistos: "); Serial.println(gps_satellites);
+          Serial.println("(Saca la antena al exterior y espera unos minutos)");
+        }
+        Serial.println("--------------------------------------------------");
+      }
+      
+      ultimaImpresion = millis();
   }
 }
 
-// Función para extraer datos de las sentencias $GPGGA o $GNGGA
-void procesarSentenciaNMEA(String sen) {
-  if (sen.startsWith("$GNGGA") || sen.startsWith("$GPGGA")) {
-    int comas[15];
-    int contadorComas = 0;
-    
-    // Localizar las posiciones de las comas en la frase
-    for (int i = 0; i < sen.length() && contadorComas < 15; i++) {
-      if (sen[i] == ',') comas[contadorComas++] = i;
-    }
+// =========================================================================
+// FUNCIONES DE PARSEO MANUAL (Tu lógica original mejorada)
+// =========================================================================
 
-    if (contadorComas >= 10) {
-      satelites = sen.substring(comas[6] + 1, comas[7]).toInt();
+void parseGPS(String sentence) {
+  // Filtro de seguridad: ignorar frases corruptas o muy cortas
+  if (sentence.length() < 6) return;
+  
+  // $GNGGA o $GPGGA -> Datos de Altitud y Satélites
+  if (sentence.startsWith("$GNGGA") || sentence.startsWith("$GPGGA")) {
+    parseGGA(sentence);
+  } 
+  // $GNRMC o $GPRMC -> Datos de Posición y Estado
+  else if (sentence.startsWith("$GNRMC") || sentence.startsWith("$GPRMC")) {
+    parseRMC(sentence);
+  }
+}
+
+void parseRMC(String sentence) {
+  int commaCount = 0;
+  int lastIndex = 0;
+  
+  for (int i = 0; i < sentence.length(); i++) {
+    if (sentence[i] == ',' || sentence[i] == '\n') {
+      String field = sentence.substring(lastIndex, i);
       
-      if (satelites > 0) {
-        tieneFix = true;
-        // Parseo básico de coordenadas (GradosMinutos -> Grados Decimales aprox)
-        latitud = sen.substring(comas[1] + 1, comas[2]).toFloat() / 100.0;
-        longitud = sen.substring(comas[3] + 1, comas[4]).toFloat() / 100.0;
-        altitudGPS = sen.substring(comas[8] + 1, comas[9]).toFloat();
-      } else {
-        tieneFix = false;
-        latitud = 0; longitud = 0; altitudGPS = 0;
+      // Campo 2: Estado (A=Active, V=Void)
+      if (commaCount == 2) {
+        gps_fix = (field == "A");
+        if (gps_fix) lastFixTime = millis();
+      } 
+      // Campo 3: Latitud
+      else if (commaCount == 3) {
+        gps_lat = parseCoordinate(field);
+      } 
+      // Campo 4: N/S (Hemisferio)
+      else if (commaCount == 4) {
+        if (field == "S") gps_lat = -gps_lat;
       }
+      // Campo 5: Longitud
+      else if (commaCount == 5) {
+        gps_lon = parseCoordinate(field);
+      }
+      // Campo 6: E/W (Hemisferio)
+      else if (commaCount == 6) {
+        if (field == "W") gps_lon = -gps_lon;
+      }
+      
+      lastIndex = i + 1;
+      commaCount++;
     }
   }
+}
+
+void parseGGA(String sentence) {
+  int commaCount = 0;
+  int lastIndex = 0;
+  
+  for (int i = 0; i < sentence.length(); i++) {
+    if (sentence[i] == ',' || sentence[i] == '\n') {
+      String field = sentence.substring(lastIndex, i);
+      
+      // Campo 7: Número de satélites
+      if (commaCount == 7) gps_satellites = field.toInt();
+      // Campo 9: Altitud
+      else if (commaCount == 9 && field.length() > 0) gps_alt = field.toFloat();
+      
+      lastIndex = i + 1;
+      commaCount++;
+    }
+  }
+}
+
+// Función auxiliar para convertir coordenadas NMEA (GradosMinutos) a Decimal
+float parseCoordinate(String coord) {
+  if (coord.length() < 5) return 0.0;
+  int dotIndex = coord.indexOf('.');
+  int degreeDigits = dotIndex - 2; // Los minutos siempre son los 2 dígitos antes del punto
+  
+  if (degreeDigits <= 0) return 0.0;
+  
+  float degrees = coord.substring(0, degreeDigits).toFloat();
+  float minutes = coord.substring(degreeDigits).toFloat();
+  
+  return degrees + (minutes / 60.0);
 }
