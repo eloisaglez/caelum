@@ -6,7 +6,7 @@
  * CONEXIÓN DE HARDWARE:
  * - GPS TX  --> Arduino RX (Pin 0)
  * - GPS RX  --> Arduino TX (Pin 1)
- * - GPS VCC --> 3.3V (o 5V según modelo)
+ * - GPS VCC --> 3.3V 
  * - GPS GND --> GND
  * =========================================================================
  */
