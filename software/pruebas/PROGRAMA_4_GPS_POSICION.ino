@@ -1,6 +1,6 @@
 /*
  * =========================================================================
- * TEST DE SENSOR GPS - ARDUINO NANO 33 BLE SENSE
+ * TEST DE SENSOR GPS - CON AUTODIAGNÓSTICO DE CABLEADO- ARDUINO NANO 33 BLE SENSE
  * =========================================================================
  * CONEXIÓN:
  * GPS TX  -->  Pin D0 (RX) del Arduino
@@ -9,6 +9,88 @@
  * desconectar el GPS de los pines 0 y 1. No hay conflicto con el USB.
  * =========================================================================
  */
+
+#include <TinyGPSPlus.h>
+
+#define gpsSerial Serial1
+TinyGPSPlus gps;
+
+// Tiempo máximo sin recibir datos antes de dar error de conexión
+const unsigned long TIMEOUT_CONEXION = 3000; 
+
+void setup() {
+  Serial.begin(115200);
+  gpsSerial.begin(9600); 
+
+  while (!Serial); 
+  delay(1000);
+
+  Serial.println("===========================================");
+  Serial.println("       SISTEMA DE NAVEGACIÓN CANSAT        ");
+  Serial.println("===========================================");
+}
+
+void loop() {
+  // 1. Leer datos y actualizar contador de actividad
+  static unsigned long ultimoDatoRecibido = 0;
+  
+  while (gpsSerial.available() > 0) {
+    gps.encode(gpsSerial.read());
+    ultimoDatoRecibido = millis(); // Actualizamos cada vez que entra un byte
+  }
+
+  // 2. Mostrar información cada 2 segundos
+  static unsigned long ultimaActualizacion = 0;
+  if (millis() - ultimaActualizacion > 2000) {
+    
+    // VERIFICACIÓN DE CABLEADO
+    if (millis() - ultimoDatoRecibido > TIMEOUT_CONEXION) {
+      Serial.println(" [!] ERROR: CHECK THE WIRE / NO GPS DATA DETECTED ");
+      Serial.println("     Verifica: TX->Pin 0, RX->Pin 1, VCC y GND.");
+    } 
+    else {
+      imprimirDatosGPS();
+    }
+    
+    ultimaActualizacion = millis();
+  }
+}
+
+void imprimirDatosGPS() {
+  Serial.print("Sats: ");
+  Serial.print(gps.satellites.value());
+  
+  Serial.print(" | Lat: ");
+  if (gps.location.isValid()) {
+    Serial.print(gps.location.lat(), 6);
+  } else {
+    Serial.print("XXXXXX");
+  }
+
+  Serial.print(" | Lon: ");
+  if (gps.location.isValid()) {
+    Serial.print(gps.location.lng(), 6);
+  } else {
+    Serial.print("XXXXXX");
+  }
+
+  Serial.print(" | Alt: ");
+  if (gps.altitude.isValid()) {
+    Serial.print(gps.altitude.meters(), 1);
+    Serial.print("m");
+  } else {
+    Serial.print("0.0m");
+  }
+
+  // Mensaje de estado dinámico según satélites
+  if (gps.satellites.value() == 0) {
+    Serial.println(" [ BUSCANDO SEÑAL... ]");
+  } else if (!gps.location.isValid()) {
+    Serial.println(" [ SEÑAL DÉBIL - ESPERANDO FIX ]");
+  } else {
+    Serial.println(" [ FIX OK ✓ ]");
+  }
+}
 
 #define gpsSerial Serial1 // Serial1 usa los pines D0 y D1
 
