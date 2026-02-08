@@ -53,8 +53,6 @@ cansat-mision2/
 │   │
 │   ├── vuelo/                       # Programa final + panel web
 │   │   ├── PROGRAMA_FINAL_CANSAT.ino
-│   │   ├── PROGRAMA_CANSAT_RAM_PRUEBA.ino    # Grabación RAM manual
-│   │   ├── PROGRAMA_CANSAT_VUELO_AUTO.ino    # Grabación RAM automática
 │   │   └── panel_web/
 │   │       └── cansat_firebase.html
 │   │
