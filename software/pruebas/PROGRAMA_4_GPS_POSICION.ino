@@ -1,19 +1,19 @@
 /*
  * =========================================================================
- * PROGRAMA DE PRUEBA GPS - CANSAT (FINAL)
+ * PROGRAMA MAESTRO CANSAT - GPS + PROTECCIÓN DE ARRANQUE
  * PLACA: Arduino Nano 33 BLE Sense
  * =========================================================================
  * CONEXIÓN DE HARDWARE:
- * - GPS TX  --> Arduino RX (Pin 0)
+ * - GPS TX  --> Arduino RX (Pin 0) [¡DESCONECTAR AL SUBIR EL CÓDIGO!]
  * - GPS RX  --> Arduino TX (Pin 1)
- * - GPS VCC --> 3.3V 
+ * - GPS VCC --> 3.3V (o 5V si es necesario)
  * - GPS GND --> GND
  * =========================================================================
  */
 
 #include <Arduino.h>
 
-// Definimos el puerto del GPS/Radio para que sea fácil de leer
+// Usamos Serial1 para el GPS (Pines 0 y 1)
 #define gpsPort Serial1 
 
 // --- VARIABLES GLOBALES ---
@@ -24,7 +24,6 @@ float gps_alt = 0.0;
 int gps_satellites = 0;
 boolean gps_fix = false;
 
-int contador = 0;
 unsigned long lastFixTime = 0;
 
 void setup() {
@@ -32,12 +31,10 @@ void setup() {
   Serial.begin(115200); 
 
   // -----------------------------------------------------------------------
-  // 2. BLOQUE DE ARRANQUE INTELIGENTE (Seguridad + Modo Vuelo)
+  // 2. BLOQUE DE ARRANQUE INTELIGENTE (MODO VUELO vs MODO PC)
   // -----------------------------------------------------------------------
-  
-  // Paso A: Esperar al USB (Máximo 4 segundos)
-  // Si estamos en el laboratorio, esto espera a que abras el monitor.
-  // Si estamos en el cohete (batería), se salta esto tras 4s.
+  // Si estás con batería (vuelo), esto se salta en 4 segundos.
+  // Si estás con USB, espera a que abras el monitor.
   unsigned long inicio = millis();
   while (!Serial && millis() - inicio < 4000) {
     // Esperando conexión...
@@ -45,8 +42,11 @@ void setup() {
 
   Serial.println("--- SISTEMA DE ARRANQUE CANSAT ---");
 
-  // Paso B: Cuenta atrás de seguridad (Vital para evitar 'Port Busy')
-  // Da tiempo a estabilizar el sistema antes de abrir el puerto ruidoso del GPS.
+  // -----------------------------------------------------------------------
+  // 3. CUENTA ATRÁS DE SEGURIDAD (ANTIBLOQUEO)
+  // -----------------------------------------------------------------------
+  // Esperamos 5 segundos antes de encender el GPS para que Windows
+  // tenga tiempo de reconocer el puerto USB sin interferencias.
   for(int i = 5; i > 0; i--) {
      if(Serial) {
        Serial.print("⚠️ Activando GPS en: ");
@@ -55,12 +55,12 @@ void setup() {
      delay(1000); 
   }
   
-  if(Serial) Serial.println("✅ ACTIVANDO PUERTO SERIAL1 (GPS/RADIO)...");
+  if(Serial) Serial.println("✅ ACTIVANDO PUERTO SERIAL1 (GPS)...");
 
   // -----------------------------------------------------------------------
-  // 3. INICIAR GPS (Puerto Hardware)
+  // 4. INICIAR GPS (Puerto Hardware)
   // -----------------------------------------------------------------------
-  gpsPort.begin(9600); // La mayoría de GPS funcionan a 9600 baudios
+  gpsPort.begin(9600); // Velocidad estándar del GPS
 }
 
 void loop() {
@@ -79,7 +79,7 @@ void loop() {
   }
   
   // -----------------------------------------------------------------------
-  // MOSTRAR DATOS (Solo cada cierto tiempo para no saturar la pantalla)
+  // MOSTRAR DATOS EN PANTALLA
   // -----------------------------------------------------------------------
   static unsigned long ultimaImpresion = 0;
   
@@ -98,7 +98,7 @@ void loop() {
         } else {
           Serial.println("ESTADO: BUSCANDO SATÉLITES... ⏳");
           Serial.print("Satélites vistos: "); Serial.println(gps_satellites);
-          Serial.println("(Saca la antena al exterior y espera unos minutos)");
+          Serial.println("(Asegúrate de estar en exterior)");
         }
         Serial.println("--------------------------------------------------");
       }
@@ -108,11 +108,10 @@ void loop() {
 }
 
 // =========================================================================
-// FUNCIONES DE PARSEO MANUAL (Tu lógica original mejorada)
+// FUNCIONES DE PARSEO MANUAL (Lógica para entender al GPS)
 // =========================================================================
 
 void parseGPS(String sentence) {
-  // Filtro de seguridad: ignorar frases corruptas o muy cortas
   if (sentence.length() < 6) return;
   
   // $GNGGA o $GPGGA -> Datos de Altitud y Satélites
@@ -180,11 +179,10 @@ void parseGGA(String sentence) {
   }
 }
 
-// Función auxiliar para convertir coordenadas NMEA (GradosMinutos) a Decimal
 float parseCoordinate(String coord) {
   if (coord.length() < 5) return 0.0;
   int dotIndex = coord.indexOf('.');
-  int degreeDigits = dotIndex - 2; // Los minutos siempre son los 2 dígitos antes del punto
+  int degreeDigits = dotIndex - 2; 
   
   if (degreeDigits <= 0) return 0.0;
   
