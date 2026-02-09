@@ -50,7 +50,7 @@ Instalar: Sensirion Core by Sensirion
 
 ## ✅ Verificación I2C
 
-**Programa:** `software/pruebas/PROGRAMA_I2C_SCANNER.ino`
+**Programa:** `software/pruebas/I2C_scanner_SCD40.ino`
 
 **Resultado esperado:** `✓ Encontrado en: 0x62`
 
