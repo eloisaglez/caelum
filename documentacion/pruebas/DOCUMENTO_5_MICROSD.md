@@ -3,8 +3,6 @@
 ## Objetivo
 Probar la grabación de datos en tarjeta MicroSD como respaldo. En esta prueba solo se graban los **sensores integrados** del Arduino para verificar que el sistema de almacenamiento funciona.
 
-**NOTA:** El programa final de vuelo graba todos los sensores (integrados + SCD40 + HM3301 + GPS).
-
 ---
 
 ## 💾 MicroSD - Especificaciones
@@ -160,24 +158,6 @@ BUENO:
 3. Inserta en lector de PC
 4. Abre TEST.CSV con Excel o Bloc de notas
 5. Deberías ver los datos grabados
-```
-
----
-
-## 📈 Análisis de Datos
-
-### En Excel
-
-```
-1. Abre TEST.CSV
-2. Datos → Texto en columnas
-3. Delimitador: Coma
-4. Finalizar
-
-Ahora puedes crear gráficas:
-  • Temperatura vs Tiempo
-  • Altitud vs Tiempo
-  • etc.
 ```
 
 ---
