@@ -54,10 +54,10 @@ D8         →    SET
 
 1. Conecta el APC220 al Arduino UNO según el esquema
 2. Conecta la antena al APC220
-3. Carga el programa: `PROGRAMA_APC220_CONFIGURADOR.ino`
+3. Carga el programa: `PROGRAMA_CONFIGURACION_APC220_CON_VERIFICACION.ino`
 4. Abre Monitor Serie a 9600 baud
 5. Verás la configuración actual
-6. Para escribir nueva configuración: `WR 434000 3 9 3 0`
+6. Para escribir nueva configuración: `WR 434000 3 9 3 0` (Cambiarla por la que den a cada equipo)
 7. Para verificar: `RD`
 8. Debe responder: `PARA 434000 3 9 3 0`
 9. **REPITE con el segundo APC220**
@@ -66,11 +66,15 @@ D8         →    SET
 
 ## PARTE 2: CONEXIÓN PARA TELEMETRÍA
 
-### IMPORTANTE: Conexiones DIRECTAS (no cruzadas)
-
-La etiqueta TXD/RXD del APC220 indica **dónde conectar el pin del micro**, no la función del módulo. Por eso van directos:
-- TX del micro → TXD del APC220
-- RX del micro → RXD del APC220
+### ⚠️IMPORTANTE: 
+/*  Usamos la conexión CRUZADA por defecto (D2 a TX y D3 a RX).
+ * SI NO SE RECIBE NADA EN EL MONITOR SERIE:
+ * - Poner la conexión DIRECTA (D2 con RX y D3 con TX).
+ * Dependiendo de cómo esté etiquetado tu módulo APC220, 
+ * funcionará de una forma o de la otra. COMPRUÉBALO SIEMPRE.
+ *
+ * ⚠️Cargar el programa CON LA ANTENA CONECTADA para evitar daños en el módulo.
+ */
 
 ---
 
@@ -79,16 +83,16 @@ La etiqueta TXD/RXD del APC220 indica **dónde conectar el pin del micro**, no l
 ```
 Nano 33 BLE     APC220
 ───────────────────────
-Pin 0 (RX)  →   RXD
-Pin 1 (TX)  →   TXD
-3.3V        →   VCC
-GND         →   GND
+Pin D2 (RX)  →   RXD
+Pin D3 (TX)  →   TXD
+3.3V         →   VCC
+GND          →   GND
 ```
 
 **NOTA:** El pin EN puede dejarse sin conectar, funciona igualmente.  
 Compatible con conector Grove (4 pines: VCC, GND, TX, RX).
 
-Programa: `PROGRAMA_APC220_EMISOR.ino`
+Programa: `prueba_telemetria_emisor.ino`
 
 ---
 
@@ -107,7 +111,7 @@ D10        →    TXD
 D8         →    SET
 ```
 
-Programa: `PROGRAMA_APC220_RECEPTOR.ino`
+Programa: `prueba_telemetria_receptor.ino`
 
 Abre el Monitor Serie a 9600 baud y verás los datos recibidos.
 
@@ -133,7 +137,6 @@ Abre el Monitor Serie del puerto USB-TTL a 9600 baud.
 **Nota:** El pin EN del APC220 se deja sin conectar, funciona igualmente.
 
 **IMPORTANTE:** El problema más común es cruzar las conexiones TX/RX. 
-Las conexiones van DIRECTAS: TX→TXD, RX→RXD (no cruzadas).
 
 ---
 
@@ -141,9 +144,9 @@ Las conexiones van DIRECTAS: TX→TXD, RX→RXD (no cruzadas).
 
 Ambos métodos de receptor fueron probados y funcionan correctamente.
 
-1. Carga `PROGRAMA_APC220_EMISOR.ino` en el Nano 33 BLE
+1. Carga `prueba_telemetria_emisor.ino` en el Nano 33 BLE
 2. Elige un método de receptor:
-   - **Opción A:** Arduino UNO con `PROGRAMA_APC220_RECEPTOR.ino`
+   - **Opción A:** Arduino UNO con `prueba_telemetria_receptor.ino`
    - **Opción B:** USB-TTL conectado al PC
 3. Abre el Monitor Serie del receptor a 9600 baud
 4. Deberías ver "HOLA" cada 2 segundos
@@ -156,9 +159,9 @@ Ambos métodos de receptor fueron probados y funcionan correctamente.
 
 El problema más común es **cruzar las conexiones TX/RX**.
 
-1. **¿Conexiones directas?** → TX→TXD, RX→RXD (NO cruzadas)
+1. **¿Conexiones directas?** → TX→TXD, RX→RXD 
 2. **¿Misma configuración en ambos APC220?** → Verificar con `RD`
-3. **¿Antenas conectadas?**
+3. **¿Antenas conectadas?** 
 
 ### Error al configurar
 
@@ -175,8 +178,8 @@ CONFIGURACIÓN:
 [ ] APC220 #2 configurado: PARA 434000 3 9 3 0
 
 EMISOR (Nano 33 BLE):
-[ ] Pin 0 → RXD
-[ ] Pin 1 → TXD
+[ ] Pin D2 → RXD
+[ ] Pin D3 → TXD
 [ ] 3.3V → VCC
 [ ] GND → GND
 [ ] Antena conectada
