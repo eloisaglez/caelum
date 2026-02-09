@@ -1,4 +1,4 @@
-📋 DOCUMENTO 7: Sistema de Grabación en RAM
+## 📋 DOCUMENTO 7: Sistema de Grabación en RAM
 
 Objetivo
 El Arduino Nano 33 BLE utiliza la memoria RAM como una **"Caja Negra"** de seguridad. Esto evita fallos por vibraciones en tarjetas MicroSD y asegura que los datos críticos del vuelo se conserven mientras el dispositivo esté encendido.
@@ -30,7 +30,7 @@ Lógica optimizada para la misión oficial:
 
 1.  Antes del lanzamiento, enviar el comando `CONCURSO`.
 2.  El sistema esperará a detectar una caída real (descenso de >2.5m desde el punto más alto).
-3.  **IMPORTANTE:** Tras el aterrizaje, **no apagues el CanSat**. Conéctalo al PC y usa el comando `CSV` antes de desconectar la batería.
+3.  **IMPORTANTE:** Tras el aterrizaje, ⚠️**no apagues el CanSat**. Conéctalo al PC y usa el comando `CSV` antes de desconectar la batería.
 
 ## Formato de Datos Exportados
 
@@ -50,3 +50,4 @@ Lógica optimizada para la misión oficial:
 **Autor:** IES Diego Velázquez  
 **Proyecto:** CanSat - Misión 2 (Backup RAM)  
 **Fecha:** Febrero 2026
+
