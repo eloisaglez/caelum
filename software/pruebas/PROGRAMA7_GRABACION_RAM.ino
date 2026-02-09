@@ -1,5 +1,5 @@
 // ============================================================================
-// CANSAT PRO - INTELIGENCIA DE VUELO + SEGURIDAD RAM
+// CANSAT - INTELIGENCIA DE VUELO + SEGURIDAD RAM
 // ============================================================================
 // COMANDOS:
 // - PRUEBA: Para laboratorio (Umbral 0.5m).
