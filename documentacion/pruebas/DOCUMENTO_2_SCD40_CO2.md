@@ -1,4 +1,4 @@
-# 📋 DOCUMENTO 2: SENSOR SCD40 - MEDICIÓN DE CO2 REAL
+# 📋 DOCUMENTO 2: SENSOR SCD40 - MEDICIÓN DE CO2
 
 ## Objetivo
 Integrar sensor SCD40 para medir CO2 real mediante tecnología NDIR.
