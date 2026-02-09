@@ -14,7 +14,6 @@ Velocidad: 9600 baud (por defecto)
 Salida: Sentencias NMEA ($GPRMC, $GPGGA, etc)
 Función: Latitud, Longitud, Altitud, Satélites
 ```
-
 ---
 
 ## 🔌 CONEXIÓN FÍSICA
@@ -23,21 +22,31 @@ Función: Latitud, Longitud, Altitud, Satélites
 
 ```
 GPS ATGM336H:
-
 VCC (rojo)     → Arduino 3.3V
 GND (negro)    → Arduino GND
-TX (amarillo)  → Arduino D2 (RX de SoftwareSerial)
-RX (verde)     → Arduino D4 (TX de SoftwareSerial)
+TX (amarillo)  → Arduino D0 (RX)
+RX (verde)     → Arduino D1 (TX)
 ```
 
-### Por qué no Serial1 (Grove)
+🔌 CONEXIÓN FÍSICA Y SEGURIDAD
 
-```
-❌ Serial1 se usa para APC220 (antena RF)
-✅ GPS va en SoftwareSerial D2/D4
-   (permite 2 puertos UART simultáneamente)
-```
+    ⚠️ ADVERTENCIA DE CARGA: Si el GPS está conectado a los pines D0/D1 (Serial1), 
+    es posible que el programa no se cargue correctamente. Si obtienes un error de 
+    "Upload failed", desconecta el pin TX del GPS (Pin D0) antes de subir el código.
 
+    ⚠️ NOTA DE SEGURIDAD PARA LA CARGA DE CÓDIGO (IMPORTANTE)
+
+   Protocolo recomendado si falla la carga:
+
+       Desconectar el cable TX del GPS (el que va al pin D0 de Arduino) antes de pulsar 'Subir'.
+       Una vez que el IDE confirme 'Subido con éxito', volver a conectar el cable.
+       Si el error persiste o se necesita usar SoftwareSerial por comodidad, se puede desplazar 
+       el GPS a los pines D5 y D6 (dejando D2/D3 exclusivos para la antena APC220).
+
+    PLAN B (Si el error de carga persiste):
+
+        Mover el GPS a los pines D5 y D6 usando Serial1 para evitar interferencias totales con el 
+        sistema de carga de la placa.
 ---
 
 ## 📥 INSTALACIÓN LIBRERÍAS
@@ -57,180 +66,19 @@ No necesita librería especial
 
 Antes de integrar, verifica que envía datos:
 
-```cpp
-#include <SoftwareSerial.h>
+**Programa:** `software/pruebas/PROGRAMA_4_GPS_POSICION_PRUEBAS.ino
 
-SoftwareSerial gpsSerial(2, 4);  // RX=D2, TX=D4
-
-void setup() {
-  Serial.begin(9600);
-  gpsSerial.begin(9600);
-  delay(2000);
-  
-  Serial.println("Leyendo datos GPS RAW...");
-}
-
-void loop() {
-  while (gpsSerial.available()) {
-    char c = gpsSerial.read();
-    Serial.write(c);  // Imprime exactamente lo que recibe
-  }
-}
-```
-
-**Resultado esperado:**
-
-```
-$GNGGA,225030.00,4027.80522,N,00345.83720,W,0,00,99.99,,,,,,*54
-$GNGSA,A,1,,,,,,,,,,,,,99.99,99.99,99.99,1*01
-$GPGSV,1,1,00,0*65
-$GNRMC,,V,,,,,,,,,,M,V*34
-...
-```
-
-Si NO ves datos → Revisa conexión TX/RX
+Si NO se ven datos → Revisar conexión TX/RX
 
 ---
 
 ## 💻 PROGRAMA PRUEBA GPS
 
-```cpp
-/*
- * Arduino Nano 33 BLE - Prueba GPS
- * Latitud + Longitud + Altitud + Satélites
- */
-
-#include <SoftwareSerial.h>
-
-SoftwareSerial gpsSerial(2, 4);  // RX=D2, TX=D4
-
-// Variables GPS
-float gps_lat = 0.0, gps_lon = 0.0;
-float gps_alt = 0.0;
-int gps_sats = 0;
-boolean gps_fix = false;
-
-String gpsData = "";
-
-void setup() {
-  Serial.begin(9600);
-  gpsSerial.begin(9600);
-  delay(2000);
-  
-  Serial.println();
-  Serial.println("╔════════════════════════════════════════╗");
-  Serial.println("║  Arduino Nano 33 BLE - GPS            ║");
-  Serial.println("║  Latitud + Longitud + Altitud + Sats  ║");
-  Serial.println("╚════════════════════════════════════════╝");
-  Serial.println();
-  Serial.println("Esperando fix GPS (puede tardar 2-5 min en exterior)...");
-  Serial.println();
-}
-
-void loop() {
-  // Leer datos GPS
-  while (gpsSerial.available()) {
-    char c = gpsSerial.read();
-    gpsData += c;
-    
-    if (c == '\n') {
-      parseGPS(gpsData);
-      gpsData = "";
-    }
-  }
-  
-  // Mostrar estado
-  if (gps_fix) {
-    Serial.print("✓ FIX - Sats: ");
-    Serial.print(gps_sats);
-    Serial.print(" | Lat: ");
-    Serial.print(gps_lat, 6);
-    Serial.print(" | Lon: ");
-    Serial.print(gps_lon, 6);
-    Serial.print(" | Alt: ");
-    Serial.print(gps_alt, 1);
-    Serial.println("m");
-  } else {
-    Serial.println("⏳ Sin fix GPS (buscando satélites)...");
-    delay(5000);
-  }
-}
-
-void parseGPS(String sentence) {
-  if (sentence.length() < 6) return;
-  
-  // Procesar GNGGA (satélites y altitud)
-  if (sentence.startsWith("$GNGGA")) {
-    parseGGA(sentence);
-  }
-  // Procesar GNRMC (posición y fix)
-  else if (sentence.startsWith("$GNRMC")) {
-    parseRMC(sentence);
-  }
-}
-
-void parseGGA(String sentence) {
-  int commaCount = 0;
-  int lastIndex = 0;
-  
-  for (int i = 0; i < sentence.length(); i++) {
-    if (sentence[i] == ',' || sentence[i] == '\n') {
-      String field = sentence.substring(lastIndex, i);
-      
-      if (commaCount == 7) {
-        gps_sats = field.toInt();
-      } else if (commaCount == 9) {
-        if (field.length() > 0) {
-          gps_alt = field.toFloat();
-        }
-      }
-      
-      lastIndex = i + 1;
-      commaCount++;
-    }
-  }
-}
-
-void parseRMC(String sentence) {
-  int commaCount = 0;
-  int lastIndex = 0;
-  
-  for (int i = 0; i < sentence.length(); i++) {
-    if (sentence[i] == ',' || sentence[i] == '\n') {
-      String field = sentence.substring(lastIndex, i);
-      
-      if (commaCount == 2) {
-        gps_fix = (field == "A");  // A=activo, V=inválido
-      } else if (commaCount == 3) {
-        gps_lat = parseCoordinate(field);
-      } else if (commaCount == 5) {
-        gps_lon = parseCoordinate(field);
-      }
-      
-      lastIndex = i + 1;
-      commaCount++;
-    }
-  }
-}
-
-float parseCoordinate(String coord) {
-  if (coord.length() < 5) return 0.0;
-  
-  int dotIndex = coord.indexOf('.');
-  int degreeDigits = dotIndex - 2;
-  
-  if (degreeDigits <= 0) return 0.0;
-  
-  float degrees = coord.substring(0, degreeDigits).toFloat();
-  float minutes = coord.substring(degreeDigits).toFloat();
-  
-  return degrees + (minutes / 60.0);
-}
-```
-
----
+**Archivo:** `software/pruebas/DOCUMENTO_3_SENSOR_GPS_POSICION`
 
 ## ⏱️ TIEMPO OBTENCIÓN FIX GPS
+
+---
 
 ```
 PRIMER ENCENDIDO (Cold Start):
