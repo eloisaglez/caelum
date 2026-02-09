@@ -45,7 +45,7 @@ Instalar: Grove - Laser PM2.5 Sensor HM3301
 
 ## ✅ Verificación I2C
 
-**Programa:** `software/pruebas/PROGRAMA_I2C_SCANNER.ino`
+**Programa:** `software/pruebas/I2C_scanner_HM3301.ino`
 
 **Resultado esperado:** `✓ Encontrado en: 0x40`
 
