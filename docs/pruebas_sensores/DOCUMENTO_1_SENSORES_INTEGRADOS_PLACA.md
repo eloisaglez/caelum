@@ -139,12 +139,12 @@ N° | Temp(HS) | Humedad | Presion | Altitud | AccelZ | GyroX
 
 ## 🎯 Próximo Paso
 
-**Documento 2:** Agregar sensor SGP30 (TVOC + eCO2)
+**Documento 2:** Agregar sensor SCD40 (CO2)
 
-Archivo: `PROGRAMA_2_SGP30_GASES.ino`
+Archivo: `PROGRAMA_2_SCD40.ino`
 
 ---
 
 **Estado:** ✅ Arduino Nano 33 BLE funcionando  
-**Última actualización:** Enero 2026
+**Última actualización:** Febrero 2026
 **Versión:** Actualizada según pruebas reales
