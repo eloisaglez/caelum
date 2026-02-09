@@ -35,7 +35,7 @@
 ```
 cansat-mision2/
 │
-├── design/                          # Todo lo que se diseñó (3D, PCB, Telas)
+├── design/                        
 │   ├── structural/                  # Carcasa
 │   ├── recovery/                    # Paracaídas
 │   ├── electronics/                 # Circuitos
@@ -49,7 +49,9 @@ cansat-mision2/
 │   │   ├── PROGRAMA_4_GPS.ino
 │   │   ├── PROGRAMA_5_MICROSD.ino
 │   │   ├── PROGRAMA_6_APC220_CONFIG.ino
-│   │   └── PROGRAMA_7_GRABACION_RAM.ino
+|   |   ├── PROGRAMA_7_GRABACION_RAM.ino
+│   │   └── Otros
+|   |
 │   │
 │   ├── vuelo/                       # Programa final + panel web
 │   │   ├── PROGRAMA_FINAL_CANSAT.ino
