@@ -289,7 +289,7 @@ Para probar que funciona:
    Funciona correctamente en exterior
 
 ✅ Primera medición tarda 5 segundos
-   No confíes en lecturas antes de ese tiempo
+   No confiar en lecturas antes de ese tiempo
 
 ✅ Auto-calibración
    El SCD40 se auto-calibra asumiendo exposición
