@@ -115,10 +115,9 @@ void loop() {
  * ========================================================================
  * NOTAS IMPORTANTES:
  * 
- * ⚠️ TEMPERATURA HS3003:
- *    - MÁS real que LPS22HB
- *    - Pero tiene error ±2-3°C por calor del chip
- *    - Para precisión, usar DHT22 externo
+ *✅ TEMPERATURA HS3003:
+ *    - Tiene error ±2-3°C por calor del chip
+ *    - Para precisión, usar DHT22 externo o el SCD40
  * 
  * ✅ PRESIÓN LPS22HB:
  *    - Precisa para altitud
