@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
 ════════════════════════════════════════════════════════════════
-   CANSAT MISIÓN 2 - ANÁLISIS POST-VUELO
-   Detección de Firmas de Combustión (CO2 + PM2.5)
-════════════════════════════════════════════════════════════════
+   CANSAT - ANÁLISIS POST-VUELO
+══════════════════════════════════════════════════════════════
 
 Este script analiza los datos del vuelo y genera:
   • Mapa de calor interactivo (HTML)
@@ -11,15 +10,18 @@ Este script analiza los datos del vuelo y genera:
   • Gráficas de análisis (PNG)
   • Informe estadístico
 
-Sensores: SCD40 (CO2) + HM3301 (PM2.5)
+Sensores: SCD40 (CO2) + HM3301 (PM2.5) + GPS + Sensores integrados en Arduino nano 33 Sense BLE
 
 Autor: IES Diego Velázquez
 Fecha: Febrero 2026
 
-USO:
-    python analizar_vuelo.py                    # Usa mission2.csv
-    python analizar_vuelo.py datos_vuelo.csv   # Usa archivo específico
-    python analizar_vuelo.py --ejemplo         # Genera datos de ejemplo
+Mapa de calor
+     co2 > 1000 and pm25 > 55: '🔴 Combustión Activa'
+     co2 > 750 and pm25 > 35:  '🟠 Riesgo EPOC (Diésel)
+     co2 > 500 and pm25 > 25:  '🟡 Tráfico Vehicular'
+     co2 < 480 and pm25 > 40:  '🌫️ Polvo Suspendido'
+     co2 <  480 and pm25 < 40:'🌿 Aire Limpio', 
+
 ════════════════════════════════════════════════════════════════
 """
 
