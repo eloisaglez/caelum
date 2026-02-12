@@ -3,72 +3,63 @@
 # PROGRAMA: Estación de Tierra (Telemetría en Tiempo Real)
 # OBJETIVO: Leer datos del puerto serie (Radio/USB), subirlos a la nube
 #           y generar un respaldo local en formato CSV.
+#           Recibir 15 parámetros, enviar 14 (sin la humedad) a la web y guardar 15 en el CSV.
 # ENTORNO: Thonny / Python Local
 # ============================================================================
 
-import serial
-import requests
-import time
-import csv
-import os
+# ============================================================================
+# PROYECTO: CANSAT CAELUM 
+# PROGRAMA: caelum_ground_station.py
+# OBJETIVO: 
+# ============================================================================
+import serial, requests, time, csv, os
 
-# --- CONFIGURACIÓN DE COMUNICACIONES ---
-PUERTO_SERIAL = 'COM3'  # Cambiar según el puerto asignado por el PC
-BAUD_RATE = 9600        # Velocidad de transmisión (Igual que en Arduino)
+PUERTO_SERIAL = 'COM3' # <--- ¡REVISAR EN EL LANZAMIENTO!
+BAUD_RATE = 9600
 FIREBASE_URL = "https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app/cansat/telemetria.json"
-NOMBRE_ARCHIVO_BACKUP = "respaldo_mision_caelum.csv"
+ARCHIVO_CSV = "mision_caelum_full_backup.csv"
 
-# --- INICIALIZACIÓN DEL ARCHIVO DE RESPALDO (BACKUP) ---
-if not os.path.exists(NOMBRE_ARCHIVO_BACKUP):
-    with open(NOMBRE_ARCHIVO_BACKUP, 'w', newline='') as f:
+# Cabecera con 15 columnas de datos + timestamp
+if not os.path.exists(ARCHIVO_CSV):
+    with open(ARCHIVO_CSV, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(["timestamp", "altitud", "temp", "presion", "co2", "lat", "lon"])
+        writer.writerow(["ts","alt","temp","pres","co2","lat","lon","pm25","pm10","ax","ay","az","rx","ry","rz","hum"])
 
-# --- INICIO DE CONEXIÓN SERIAL ---
 try:
-    arduino = serial.Serial(PUERTO_SERIAL, BAUD_RATE, timeout=1)
-    print(f"✅ Conectado al receptor en el puerto {PUERTO_SERIAL}")
+    ser = serial.Serial(PUERTO_SERIAL, BAUD_RATE, timeout=1)
+    print(f"✅ Recepción activa en {PUERTO_SERIAL}")
 except:
-    print(f"❌ ERROR: Receptor no detectado. Revisa la conexión USB.")
-    exit()
-
-print(f"🚀 Grabando respaldo local y transmitiendo a la web...")
+    print("❌ ERROR: Receptor no encontrado."); exit()
 
 while True:
     try:
-        # Lectura de la línea enviada por el CanSat
-        linea = arduino.readline().decode('utf-8').strip()
+        linea = ser.readline().decode('utf-8').strip()
         if linea:
             datos = linea.split(',')
-            ts = time.strftime("%H:%M:%S") # Marca de tiempo real
             
-            # Formatear datos para la Base de Datos
-            payload = {
-                "altitud": float(datos[0]),
-                "temp": float(datos[1]),
-                "presion": float(datos[2]),
-                "co2": float(datos[3]),
-                "latitud": float(datos[4]),
-                "longitud": float(datos[5]),
-                "timestamp": ts
-            }
+            if len(datos) >= 15: # Verificamos que lleguen todos los datos
+                ts = time.strftime("%H:%M:%S")
+                
+                # Payload para la web (mantenemos los 14 originales para no romper el HTML)
+                payload = {
+                    "altitud": float(datos[0]), "temp": float(datos[1]), "presion": float(datos[2]),
+                    "co2": float(datos[3]), "latitud": float(datos[4]), "longitud": float(datos[5]),
+                    "pm2_5": float(datos[6]), "pm10": float(datos[7]),
+                    "accelX": float(datos[8]), "accelY": float(datos[9]), "accelZ": float(datos[10]),
+                    "rotX": float(datos[11]), "rotY": float(datos[12]), "rotZ": float(datos[13]),
+                    "timestamp": ts
+                    # Nota: No enviamos "humedad" a Firebase para no saturar la red, 
+                    # ya que el HTML no la está buscando.
+                }
 
-            # 1. GUARDAR EN DISCO DURO (Copia de seguridad)
-            with open(NOMBRE_ARCHIVO_BACKUP, 'a', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow([ts, datos[0], datos[1], datos[2], datos[3], datos[4], datos[5]])
+                # RESPALDO TOTAL (Aquí sí guardamos la humedad: datos[14])
+                with open(ARCHIVO_CSV, 'a', newline='') as f:
+                    csv.writer(f).writerow([ts] + datos)
 
-            # 2. SUBIR A LA NUBE (Para el Panel Web)
-            try:
-                requests.post(FIREBASE_URL, json=payload, timeout=2)
-                print(f"📡 [{ts}] -> Firebase Sincronizado | Alt: {datos[0]}m")
-            except:
-                print(f"⚠️ [{ts}] -> Fallo de Internet (Dato guardado solo en PC)")
-
-    except KeyboardInterrupt:
-        print("\n🛑 Recepción detenida por el usuario.")
-        break
+                try:
+                    requests.post(FIREBASE_URL, json=payload, timeout=1)
+                    print(f"📡 {ts} | Web OK | Backup OK (15 campos)")
+                except:
+                    print(f"⚠️ {ts} | Error WiFi | Backup OK")
     except Exception as e:
-        print(f"⚠️ Error en procesamiento de datos: {e}")
-
-arduino.close()
+        print(f"⚠️ Error: {e}")
