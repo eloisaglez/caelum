@@ -1,64 +1,87 @@
-/*
- * =========================================================================
- * TEST SENSOR DE PARTÍCULAS HM3301 - CANSAT RAM
- * =========================================================================
- * CONEXIÓN I2C:
+/* * =========================================================================
+ * MISION CANSAT- PRUEBAS DE LABORATORIO (ASMA / EPOC)
+ * -------------------------------------------------------------------------
+ * RESUMEN DE IMPACTO:
+ * PM1.0 (ug/m3): Partículas muy finas. Pueden pasar a la sangre.
+ * PM2.5 (ug/m3): RIESGO ASMA/EPOC. Inflaman los bronquios.
+ * PM10  (ug/m3): RIESGO ALERGIA. Polen y polvo que irritan vías altas.
+ * -------------------------------------------------------------------------
+ * LÍMITES DE SEGURIDAD (Referencia PM2.5):
+ * 🟢 [0-12] Seguro | 🟡 [13-35] Moderado | 🟠 [36-55] Riesgo Asmático | 🔴 [>55] Crisis
+ * -------------------------------------------------------------------------
+ CONEXIÓN I2C:
  * - VCC: 3.3V o 5V
  * - GND: GND
  * - SDA: Pin A4 (Nano 33 BLE)
  * - SCL: Pin A5 (Nano 33 BLE)
- * * NOTA: Este sensor mide concentración de polvo/partículas PM1.0, PM2.5 y PM10.
  * =========================================================================
  */
 
-#include <Seeed_HM3301.h>
+#include <Wire.h>
 
-HM3301 sensor;
-uint8_t buf[29];
+#define HM3301_ADDR 0x40 
+
+uint16_t pm1_0, pm2_5, pm10;
+unsigned long ultimaLectura = 0;
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(9600); 
+    Wire.begin();       
 
-    // --- CONTROL DE ARRANQUE AUTÓNOMO (ESPERA INTELIGENTE) ---
-    unsigned long ventanaInicio = millis();
-    while (!Serial && millis() - ventanaInicio < 5000) {
-        // Espera 5s al USB; si no hay, arranca solo para la misión.
-        // Esto permite que la batería tome el control si no hay PC.
-    }
+    unsigned long inicio = millis();
+    while (!Serial && millis() - inicio < 5000);
 
-    Serial.println("Iniciando HM3301...");
-
-    if (sensor.init()) {
-        Serial.println(">>> ERROR: HM3301 no detectado. Revisa cables I2C <<<");
-        while (1);
-    }
+    // Activación del sensor
+    Wire.beginTransmission(HM3301_ADDR);
+    Wire.write(0x88); 
+    Wire.endTransmission();
     
-    Serial.println("HM3301 OK! Leyendo datos...");
-    Serial.println("Tiempo(s)\tPM1.0\tPM2.5\tPM10 (ug/m3)");
-    Serial.println("----------------------------------------------");
+    Serial.println("\n--- PRUEBA DE LABORATORIO: ANALISIS RESPIRATORIO ---");
+    Serial.println("Tiempo | PM1.0 | PM2.5 | PM10  | ESTADO DE RIESGO");
+    Serial.println("---------------------------------------------------------");
 }
 
 void loop() {
-    if (sensor.read_sensor_value(buf, 29)) {
-        Serial.println("Error al leer del sensor");
-        return;
-    }
-
-    // El sensor entrega los datos en el buffer. 
-    // Los valores estándar (CF=1) están en las posiciones:
-    // PM1.0: bytes 10-11 | PM2.5: bytes 12-13 | PM10: bytes 14-15
-    uint16_t pm1_0 = (uint16_t)buf[10] << 8 | buf[11];
-    uint16_t pm2_5 = (uint16_t)buf[12] << 8 | buf[13];
-    uint16_t pm10  = (uint16_t)buf[14] << 8 | buf[15];
-
-    // Imprimir resultados cada segundo
-    static unsigned long ultimaMuestra = 0;
-    if (millis() - ultimaMuestra > 1000) {
-        Serial.print(millis() / 1000); Serial.print("s\t\t");
-        Serial.print(pm1_0);           Serial.print("\t");
-        Serial.print(pm2_5);           Serial.print("\t");
-        Serial.println(pm10);
+    // Lectura cada 1 segundo
+    if (millis() - ultimaLectura > 1000) {
+        byte buffer[29];
+        Wire.requestFrom(HM3301_ADDR, 29);
         
-        ultimaMuestra = millis();
+        int i = 0;
+        while (Wire.available() && i < 29) {
+            buffer[i] = Wire.read();
+            i++;
+        }
+
+        uint8_t suma = 0;
+        for (int j = 0; j < 28; j++) suma += buffer[j];
+
+        if (suma == buffer[28]) {
+            pm1_0 = (uint16_t)buffer[10] << 8 | buffer[11];
+            pm2_5 = (uint16_t)buffer[12] << 8 | buffer[13];
+            pm10  = (uint16_t)buffer[14] << 8 | buffer[15];
+
+            // Impresión de datos
+            Serial.print(millis() / 1000);
+            Serial.print("s    | ");
+            Serial.print(pm1_0);
+            Serial.print("   | ");
+            Serial.print(pm2_5);
+            Serial.print("   | ");
+            Serial.print(pm10);
+            Serial.print("   | ");
+
+            // ALERTAS VISUALES CON ICONOS
+            if (pm2_5 <= 12) {
+                Serial.println("🟢 [AIRE SEGURO]");
+            } else if (pm2_5 <= 35) {
+                Serial.println("🟡 [RIESGO LEVE]");
+            } else if (pm2_5 <= 55) {
+                Serial.println("🟠 [RIESGO ASMATICO]");
+            } else {
+                Serial.println("🔴 [ALERTA DE CRISIS]");
+            }
+        }
+        ultimaLectura = millis();
     }
 }
