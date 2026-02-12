@@ -29,23 +29,18 @@ Sensores: SCD40 (CO2) + HM3301 (PM2.5) + GPS + Sensores integrados en Arduino na
 Autor: IES Diego Velázquez
 Fecha: Febrero 2026
 
-Mapa de calor
-     co2 > 1000 and pm25 > 55: return '🔴 Combustión Activa', '#FF0000'
-    el co2 > 750 and pm25 > 35: return '🟠 Riesgo EPOC (Diésel)', '#FF8C00'
-    elif co2 > 500 and pm25 > 25: return '🟡 Tráfico Vehicular', '#FFFF00'
-    elif co2 < 480 and pm25 > 40: return '🌫️ Polvo Suspendido', '#808080'
-    return '🌿 Aire Limpio', '#00FF00'
+Semáforo
+    co2 > 800 and pm25 > 50: 🔴 Alerta: Humo/Diésel (Riesgo EPOC)'
+    co2 < 500 and pm10 > 60: 🟠 Alerta: Polen/Polvo (Riesgo Asma)'
+    co2 > 650 or pm25 > 25: 🟡 Tráfico Urbano (Moderado)'
+    pm10 > 100:🌫️ Calima / Polvo Mineral'
+    co2 < 400-500 and pm25 < 25 :🌿 Aire Limpio'
 ════════════════════════════════════════════════════════════════
-"""
-#!/usr/bin/env python3
-"""
-════════════════════════════════════════════════════════════════════════════════
-   CANSAT RAM - ANALIZADOR PROFESIONAL DE CALIDAD DEL AIRE
-════════════════════════════════════════════════════════════════════════════════
    MODIFICACIÓN: 
+   - Mapa de calor
    - Eliminados Clusters (ahora se ven todos los puntos individuales).
    - Sustitución de marcadores por CircleMarkers de precisión.
-   - Colores de alto contraste para legibilidad médica.
+   - Colores de alto contraste para legibilidad.
 ════════════════════════════════════════════════════════════════════════════════
 """
 
@@ -172,3 +167,4 @@ if __name__ == "__main__":
         print("\n✅ ¡Todo listo! Descarga los archivos del panel lateral.")
     else:
         print(f"❌ No se encuentra el archivo {INPUT_FILE}")
+
