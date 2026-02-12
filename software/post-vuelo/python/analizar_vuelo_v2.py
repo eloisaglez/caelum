@@ -38,167 +38,123 @@ Semáforo
 Fecha: Febrero 2026
 """
 
-import os
+#!/usr/bin/env python3
 import pandas as pd
 import matplotlib.pyplot as plt
 import folium
 from folium.plugins import HeatMap
-import simplekml
+import os
+import numpy as np
 
-# --- CONFIGURACIÓN DEL ARCHIVO ---
+# --- CONFIGURACIÓN ---
 INPUT_FILE = 'vuelo_brunete_17marzo.csv'
 
-# ════════════════════════════════════════════════════════════════
-# 1. LÓGICA DE FIRMAS Y CONSEJOS MÉDICOS
-# ════════════════════════════════════════════════════════════════
-
-def detectar_firma_y_consejo(row):
+# 1. DETECCIÓN DE FIRMAS (Tabla del README)
+def detectar_firma(row):
     co2 = row.get('co2', 400)
     pm25 = row.get('pm2_5', 0)
-    pm10 = row.get('pm10', 0)
-    
-    # 🔴 COMBUSTIÓN / DIÉSEL: Riesgo Crítico EPOC
-    if co2 > 850 and pm25 > 50:
-        return ('🔴 Alerta: Diésel (EPOC)', 
-                '⚠️ Riesgo de inflamación sistémica. Pacientes con EPOC deben evitar esta zona.', 
-                '#FF0000')
-    
-    # 🌫️ CALIMA / POLVO MINERAL: Riesgo Mecánico
-    elif pm10 > 100:
-        return ('🌫️ Calima / Polvo Mineral', 
-                '⚠️ Irritación mecánica de las vías aéreas. Se recomienda cerrar ventanas.', 
-                '#696969')
-    
-    # 🟠 POLEN / ALERGIA: Riesgo Asma
-    elif co2 < 550 and pm10 > 65:
-        return ('🟠 Alerta: Polen (Asma)', 
-                '⚠️ Riesgo de broncoespasmo alérgico. Precaución para asmáticos.', 
-                '#FF8C00')
+    if co2 > 700 and pm25 > 100: return '🔥 Combustión activa', '#FF0000'
+    elif co2 > 600 and pm25 > 80: return '🚜 Generador Diésel', '#FF4500'
+    elif 500 <= co2 <= 700 and 40 <= pm25 <= 100: return '🚗 Tráfico Vehicular', '#B8860B'
+    elif co2 < 480 and pm25 > 50: return '🌫️ Polvo', '#808080'
+    elif co2 < 450 and pm25 < 12: return '🌿 Aire Limpio', '#008000'
+    else: return '🏭 Fuente mixta', '#6A5ACD'
 
-    # 🌫️ POLVO SUSPENDIDO: Tu línea específica
-    elif co2 < 480 and pm25 > 40:
-        return ('🌫️ Polvo Suspendido', 
-                'ℹ️ Partículas en suspensión sin origen químico. Evitar deporte intenso.', 
-                '#808080')
-    
-    # 🟡 TRÁFICO URBANO: Moderado (Dorado para contraste)
-    elif co2 > 650 or pm25 > 30:
-        return ('🟡 Tráfico Urbano (Moderado)', 
-                'ℹ️ Concentración moderada de gases. Ventilar espacios cerrados.', 
-                '#B8860B') 
-    
-    # 🌿 AIRE LIMPIO
-    else:
-        return ('🌿 Aire Limpio', 
-                '✅ Condiciones óptimas para la salud respiratoria.', 
-                '#008000')
+# 2. GENERACIÓN DE GRÁFICAS
+def generar_graficas_unificadas(df):
+    print("📊 Generando paneles de gráficas...")
 
-# ════════════════════════════════════════════════════════════════
-# 2. GENERACIÓN DE GRÁFICAS POR SEPARADO
-# ════════════════════════════════════════════════════════════════
+    # --- FICHERO 1: graficas_mision_primaria.png (VERTICAL - 4 GRÁFICAS) ---
+    fig1, axs1 = plt.subplots(4, 1, figsize=(8, 20)) # Aumentamos altura para 4 gráficas
+    fig1.suptitle('Misión Primaria: Sondeo Atmosférico y Deriva', fontsize=16, fontweight='bold')
 
-def crear_graficas_cientificas(df):
-    print("📊 Generando set de gráficas para la memoria...")
+    # G1: Temperatura vs Altitud
+    axs1[0].plot(df['temp'], df['alt'], color='orange', linewidth=2, marker='o', markersize=3, markevery=5)
+    axs1[0].set_title("Perfil Térmico")
+    axs1[0].set_xlabel("Temperatura (°C)")
+    axs1[0].set_ylabel("Altitud (m)")
+    axs1[0].grid(True, alpha=0.3)
 
-    # --- GRÁFICA 1: MISIÓN PRIMARIA ---
-    plt.figure(figsize=(10, 4))
-    plt.plot(df['timestamp'], df['alt'], color='black', linewidth=2)
-    plt.fill_between(df['timestamp'], df['alt'], color='skyblue', alpha=0.3)
-    plt.title("Gráfica 1: Perfil de Vuelo (Altitud vs Tiempo)")
-    plt.xlabel("Tiempo (s)"); plt.ylabel("Altitud (m)")
-    plt.grid(True, linestyle='--')
-    plt.savefig('graf_1_mision_primaria.png')
+    # G2: Presión vs Altitud
+    presion_est = 1013.25 * (1 - 2.25577e-5 * df['alt'])**5.25588
+    axs1[1].plot(presion_est, df['alt'], color='blue', linewidth=2)
+    axs1[1].set_title("Perfil Barométrico (Presión)")
+    axs1[1].set_xlabel("Presión (hPa)")
+    axs1[1].set_ylabel("Altitud (m)")
+    axs1[1].grid(True, alpha=0.3)
+
+    # G3: Velocidad vs Altitud
+    velocidad = np.abs(np.diff(df['alt'], prepend=df['alt'].iloc[0]))
+    axs1[2].plot(velocidad, df['alt'], color='red', linewidth=2)
+    axs1[2].axvline(x=9, color='black', linestyle='--', label='Objetivo 9m/s')
+    axs1[2].set_title("Estabilidad de Caída")
+    axs1[2].set_xlabel("Velocidad de Descenso (m/s)")
+    axs1[2].set_ylabel("Altitud (m)")
+    axs1[2].legend()
+
+    # G4: Deriva GPS (Latitud vs Longitud) - VISTA DESDE ARRIBA
+    axs1[3].plot(df['lon'], df['lat'], color='purple', linewidth=1.5, marker='>', markevery=10)
+    # Marcar inicio y fin
+    axs1[3].scatter(df['lon'].iloc[0], df['lat'].iloc[0], color='green', s=100, label='Inicio', zorder=5)
+    axs1[3].scatter(df['lon'].iloc[-1], df['lat'].iloc[-1], color='black', s=100, label='Aterrizaje', zorder=5)
+    axs1[3].set_title("Deriva GPS (Trayectoria en Planta)")
+    axs1[3].set_xlabel("Longitud")
+    axs1[3].set_ylabel("Latitud")
+    axs1[3].legend()
+    axs1[3].grid(True, alpha=0.3)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.97])
+    plt.savefig('graficas_mision_primaria.png')
     plt.close()
 
-    # --- GRÁFICA 2: MISIÓN SECUNDARIA (SEMÁFORO) ---
-    fig2, ax1 = plt.subplots(figsize=(11, 6))
-    ax1.set_xlabel('Tiempo (s)')
-    ax1.set_ylabel('PM2.5 (µg/m³)', color='red')
-    ax1.plot(df['timestamp'], df['pm2_5'], color='darkred', linewidth=2, label='PM2.5 (Partículas)')
-    
-    # Franjas de Salud
-    ax1.axhspan(0, 12, color='green', alpha=0.1, label='Zona Segura')
-    ax1.axhspan(12, 35, color='yellow', alpha=0.1, label='Moderado')
-    ax1.axhspan(35, df['pm2_5'].max()+20, color='red', alpha=0.1, label='Riesgo Asma/EPOC')
+    # --- FICHERO 2: graficas_mision_secundaria.png (DASHBOARD 2x2) ---
+    fig2, axs2 = plt.subplots(2, 2, figsize=(15, 10))
+    fig2.suptitle('Misión Secundaria: Análisis de Salud y Firmas', fontsize=16, fontweight='bold')
 
-    ax2 = ax1.twinx()
-    ax2.set_ylabel('CO2 (ppm)', color='blue')
-    ax2.plot(df['timestamp'], df['co2'], color='blue', alpha=0.4, linestyle='--', label='CO2 (Gases)')
+    axs2[0, 0].plot(df['timestamp'], df['co2'], color='blue')
+    axs2[0, 0].set_title("Concentración de CO2 (Gases)")
     
-    plt.title("Gráfica 2: Análisis de Riesgo Respiratorio y Combustión")
-    ax1.legend(loc='upper left', fontsize=9)
-    plt.savefig('graf_2_mision_secundaria.png')
+    axs2[0, 1].plot(df['timestamp'], df['pm2_5'], color='red')
+    axs2[0, 1].axhline(y=12, color='green', linestyle='--', label='Límite OMS')
+    axs2[0, 1].set_title("Partículas PM2.5 (Sólidos)")
+    axs2[0, 1].legend()
+
+    scatter = axs2[1, 0].scatter(df['co2'], df['pm2_5'], c=df['alt'], cmap='viridis')
+    axs2[1, 0].set_title("Correlación de Firmas (Color=Altitud)")
+    axs2[1, 0].set_xlabel("CO2 (ppm)"); axs2[1, 0].set_ylabel("PM2.5 (µg/m³)")
+    plt.colorbar(scatter, ax=axs2[1, 0], label='Altitud (m)')
+
+    ax4_alt = axs2[1, 1]
+    ax4_pm = ax4_alt.twinx()
+    ax4_alt.plot(df['timestamp'], df['alt'], color='black', alpha=0.5)
+    ax4_pm.fill_between(df['timestamp'], df['pm2_5'], color='red', alpha=0.2)
+    axs2[1, 1].set_title("Capa Límite: Contaminación vs Altitud")
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig('graficas_mision_secundaria.png')
     plt.close()
 
-    # --- GRÁFICA 3: PERFIL VERTICAL ---
-    plt.figure(figsize=(7, 8))
-    plt.scatter(df['pm2_5'], df['alt'], c=df['pm2_5'], cmap='RdYlGn_r', alpha=0.7, edgecolors='none')
-    plt.title("Gráfica 3: Perfil Vertical (Contaminación por Altitud)")
-    plt.xlabel("Contaminación PM2.5 (µg/m³)"); plt.ylabel("Altitud (m)")
-    plt.grid(True, alpha=0.3)
-    plt.savefig('graf_3_perfil_vertical.png')
-    plt.close()
-
-# ════════════════════════════════════════════════════════════════
-# 3. MAPA Y KML
-# ════════════════════════════════════════════════════════════════
-
+# 3. MAPA (Puntos individuales)
 def generar_mapas(df):
-    print("🗺️  Generando mapa interactivo y KML...")
-    mapa = folium.Map(location=[df['lat'].mean(), df['lon'].mean()], zoom_start=17)
-    
-    # Capa de Calor de fondo
-    heat_data = [[r['lat'], r['lon'], min(r['pm2_5']/100, 1)] for _, r in df.iterrows() if r['lat'] != 0]
-    HeatMap(heat_data, radius=18, blur=15, min_opacity=0.3).add_to(mapa)
-    
-    kml = simplekml.Kml()
-
+    print("🗺️  Generando mapa...")
+    mapa = folium.Map(location=[df['lat'].mean(), df['lon'].mean()], zoom_start=16)
     for _, row in df.iterrows():
         if row['lat'] == 0: continue
-        firma, consejo, color = detectar_firma_y_consejo(row)
-        
-        # Mapa interactivo
-        popup_html = f"""
-        <div style='font-family: Arial; width: 220px; font-size: 12px;'>
-            <h4 style='margin:0; color:#333; border-bottom: 2px solid {color};'>🛰️ CanSat RAM</h4>
-            <p style='margin: 8px 0;'><b>Firma:</b> <span style='color:{color};'>{firma}</span></p>
-            <p style='background:#f9f9f9; padding:5px; border-radius:3px;'><i>{consejo}</i></p>
-            <b>PM2.5:</b> {row['pm2_5']} µg/m³ | <b>Alt:</b> {row['alt']:.1f} m
-        </div>
-        """
+        nombre, color = detectar_firma(row)
         folium.CircleMarker(
             location=[row['lat'], row['lon']],
-            radius=7, color='black', weight=1, fill=True, fill_color=color, fill_opacity=0.9,
-            popup=folium.Popup(popup_html, max_width=300)
+            radius=7, color='black', weight=1, fill=True, fill_color=color, fill_opacity=0.8,
+            popup=f"<b>{nombre}</b>"
         ).add_to(mapa)
-        
-        # KML 3D
-        pnt = kml.newpoint(name=f"{int(row['alt'])}m", coords=[(row['lon'], row['lat'], row['alt'])])
-        pnt.altitudemode = simplekml.AltitudeMode.relativetoground
-        pnt.extrude = 1
-        kml_col = "ff" + color[5:7] + color[3:5] + color[1:3]
-        pnt.style.iconstyle.color = kml_col
-        pnt.style.linestyle.color = kml_col
-
     mapa.save('mapa_calor.html')
-    kml.save('firmas_combustion.kml')
-
-# ════════════════════════════════════════════════════════════════
-# 4. INICIO DEL PROGRAMA
-# ════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     if os.path.exists(INPUT_FILE):
-        datos = pd.read_csv(INPUT_FILE)
-        print(f"🚀 Archivo '{INPUT_FILE}' cargado. {len(datos)} puntos detectados.")
-        
-        crear_graficas_cientificas(datos)
-        generar_mapas(datos)
-        
-        print("\n✅ PROCESO FINALIZADO.")
-        print("1. Descarga 'mapa_calor.html' para ver los consejos médicos.")
-        print("2. Usa las 3 gráficas PNG para tu memoria de proyecto.")
+        df = pd.read_csv(INPUT_FILE)
+        generar_graficas_unificadas(df)
+        generar_mapas(df)
+        print("\n✅ TODO GENERADO CON ÉXITO")
+        print("- Misión Primaria (4 gráficas verticales): graficas_mision_primaria.png")
+        print("- Misión Secundaria (Panel 2x2): graficas_mision_secundaria.png")
     else:
-        print(f"❌ Error: No se encuentra el archivo {INPUT_FILE}")
-
-
+        print(f"❌ Error: No se encuentra {INPUT_FILE}")
