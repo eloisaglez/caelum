@@ -1,3 +1,19 @@
+════════════════════════════════════════════════════════════════
+   CANSAT - ANÁLISIS POST-VUELO
+══════════════════════════════════════════════════════════════
+
+Este script analiza los datos del vuelo y genera:
+  • Mapa de calor interactivo (HTML)
+  • Visualización 3D para Google Earth (KML)
+  • Gráficas de análisis (PNG)
+  • Informe estadístico
+
+Sensores: SCD40 (CO2) + HM3301 (PM2.5) + GPS + Sensores integrados en Arduino nano 33 Sense BLE
+
+Autor: IES Diego Velázquez
+Fecha: Febrero 2026
+
+
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -124,4 +140,5 @@ if os.path.exists('vuelo_brunete_17marzo.csv'):
 
     print("\n✅ Listo - descarga archivos del panel 📁")
 else:
+
     print("❌ Error: 'vuelo_brunete_17marzo.csv' no encontrado.")
