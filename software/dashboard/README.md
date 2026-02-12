@@ -1,52 +1,49 @@
 # 🚀 Proyecto CanSat: Equipo CAELUM 🛰️
 
-Bienvenido al repositorio oficial de la Estación de Tierra del **Equipo CAELUM** (IES Diego Velázquez). Este sistema permite la recepción, procesado, almacenamiento y visualización en tiempo real de la telemetría de nuestro CanSat.
+Repositorio oficial de la Estación de Tierra del **IES Diego Velázquez**. Este sistema gestiona la recepción, respaldo y visualización de telemetría para la misión CanSat 2024-2025.
 
 ---
 
-## 📂 Estructura del Proyecto
-
-El sistema está organizado en una estructura plana para facilitar su ejecución durante la misión:
-
-* 📈 **`Dashboard_Caelum.html`**: Panel de control visual con gráficos en tiempo real, mapa GPS y modelo 3D.
-* 📡 **`caelum_ground_station.py`**: Script de Python (Thonny) que gestiona la entrada de datos por puerto serie y su subida a Firebase.
-* ⏪ **`caelum_playback.py`**: Simulador para reproducir vuelos pasados a partir de archivos CSV.
-* 💾 **`mision_caelum_full_backup.csv`**: Archivo local de seguridad donde se registran todos los datos recibidos.
-
----
-
-## 🛠️ Protocolo de Lanzamiento
-
-Siga estos pasos rigurosamente para asegurar la integridad de los datos durante el vuelo:
-
-### 1. Preparación de Hardware
-* Conectar el receptor de radio (USB) al ordenador.
-* Identificar el puerto asignado (ej. `COM3` en Windows o `/dev/ttyUSB0` en Linux).
-
-### 2. Inicio de la Estación de Tierra (Backend)
-1. Abrir `📡_caelum_ground_station.py` 
-2. Verificar que la variable `PUERTO_SERIAL` coincide con el puerto detectado.
-3. Ejecutar el script (`F5`).
-4. Confirmar que la consola muestra: `✅ Recepción activa`.
-
-### 3. Visualización (Frontend)
-1. Abrir `📈_Dashboard_Caelum.html` en un navegador (preferiblemente Chrome o Edge).
-2. Presionar `F11` para entrar en modo pantalla completa.
-
----
-
-## 📊 Protocolo de Datos (Telemetría)
-
-El sistema procesa **15 parámetros** críticos:
-1. Altitud | 2. Temperatura | 3. Presión | 4. CO2 | 5. Latitud | 6. Longitud | 7. PM2.5 | 8. PM10 | 9-11. Aceleración (X,Y,Z) | 12-14. Rotación (X,Y,Z) | 15. Humedad.
-
+## ⚠️ CONTROL DE CALIDAD
 > [!IMPORTANT]
-> **Seguridad de Datos:** Aunque falle la conexión a Internet, el sistema seguirá guardando la telemetría íntegra en el archivo CSV local. **No cerrar Thonny hasta que el CanSat haya aterrizado.**
+> Antes de realizar cualquier operación oficial, asegúrate de haber eliminado la carpeta `test-local/` y cualquier archivo de prueba temporal. El directorio raíz debe contener únicamente los scripts finales detallados a continuación.
 
 ---
 
-## 👨‍💻 Equipo
-* **Nombre del Equipo:** CAELUM
-* **Institución:** IES Diego Velázquez
+## 📂 Estructura de Software
 
-* **Misión:** CanSat 2024-2025
+### 📡 Programas de Ejecución
+* **`📡_datos_puerto_serie.py`**: El motor del proyecto. Conecta con el receptor USB, guarda los datos en tiempo real con sistema de auto-guardado (`flush`) y envía la telemetría a la nube.
+* **`⏪_cargar_datos_vuelo.py`**: Utilizado para el post-análisis. Carga los datos guardados en `datos_vuelo.csv` y los reproduce en el Dashboard.
+* **`⏪_cargar_datos_simulacion.py`**: Programa de testeo que carga el histórico de `vuelo_brunete_17marzo.csv` para demostraciones y simulacros.
+
+### 📊 Archivos de Datos (CSV)
+* **`datos_vuelo.csv`**: Archivo maestro de la misión (se genera automáticamente al iniciar el vuelo).
+* **`vuelo_brunete_17marzo.csv`**: Base de datos histórica del ensayo previo.
+
+### 📈 Visualización
+* **`Dashboard_Caelum.html`**: Interfaz web dinámica con gráficas, mapa GPS y visualización 3D.
+
+---
+
+## 🛠️ Protocolo de Operación
+
+### Escenario 1: Lanzamiento Oficial (Misión Real)
+1. Conectar receptor USB y verificar puerto COM.
+2. Ejecutar **`📡_datos_puerto_serie.py`**.
+3. Abrir **`Dashboard_Caelum.html`**.
+4. Una vez confirmado el aterrizaje, detener el programa con `Ctrl + C` para cerrar el flujo de datos de forma segura.
+
+### Escenario 2: Simulación o Presentación al Jurado
+1. Ejecutar el script de carga correspondiente (**Vuelo** o **Simulación**).
+2. El sistema retransmitirá los datos almacenados al Dashboard como si estuvieran ocurriendo en vivo.
+
+---
+
+## 👨‍💻 Sobre el Equipo
+* **Institución:** IES Diego Velázquez.
+* **Misión:** Análisis de contaminantes atmosféricos (PM2.5, PM10) y gases (CO2).
+* **Tecnología:** Python 3.x, Firebase Realtime Database, JavaScript (Three.js para 3D).
+
+---
+*Caelum ad astra* 🌌
