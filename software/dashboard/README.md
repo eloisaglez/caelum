@@ -24,7 +24,7 @@ Siga estos pasos rigurosamente para asegurar la integridad de los datos durante 
 * Identificar el puerto asignado (ej. `COM3` en Windows o `/dev/ttyUSB0` en Linux).
 
 ### 2. Inicio de la Estación de Tierra (Backend)
-1. Abrir `📡_caelum_ground_station.py` en **Thonny**.
+1. Abrir `📡_caelum_ground_station.py` 
 2. Verificar que la variable `PUERTO_SERIAL` coincide con el puerto detectado.
 3. Ejecutar el script (`F5`).
 4. Confirmar que la consola muestra: `✅ Recepción activa`.
@@ -48,4 +48,5 @@ El sistema procesa **15 parámetros** críticos:
 ## 👨‍💻 Equipo
 * **Nombre del Equipo:** CAELUM
 * **Institución:** IES Diego Velázquez
+
 * **Misión:** CanSat 2024-2025
