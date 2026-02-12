@@ -83,9 +83,9 @@ cansat-mision2/
 │   │
 │   └── INDEX.md
 │
-├── data/                            # Datos de vuelos
-│   ├── vuelos/                      # CSVs crudos
-│   └── output/                      # Gráficas, mapas, KML
+├── data/                            # Datos de vuelos; CSVs, Gráficas, mapas, KML 
+│   ├── vuelos/                      
+│   └── Simulación/                  # Datos generados con un Python 
 │
 └── README.md
 ```
