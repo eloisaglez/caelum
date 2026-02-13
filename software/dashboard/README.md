@@ -91,7 +91,8 @@ Cada paquete enviado a Firebase sigue este formato estricto para asegurar la com
   "gyro_z": 1.0,
   "fase": "descenso"
 }
-
+```
+---
 ## 🔧 Configuración Firebase
 
 ### URL Base
