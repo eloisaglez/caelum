@@ -5,7 +5,7 @@
 GitHub detectó tu API Key de Firebase expuesta en el repositorio público.
 
 ```
-Alerta: Google API Key exposed in cansat_gold_firebase.html
+Alerta: Google API Key exposed in caelum_dashboard.html
 ```
 
 ---
