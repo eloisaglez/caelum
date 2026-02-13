@@ -10,102 +10,52 @@
 # Uso: DÍA DEL CONCURSO
 # # ============================================================================
 """
-
 import serial
-import csv
 import requests
 import time
-from datetime import datetime
 
-# ============================================
-# CONFIGURACIÓN
-# ============================================
-
-PUERTO_SERIAL = 'COM3'  # Cambiar según tu puerto
+# === CONFIGURACIÓN ===
+PUERTO_SERIAL = 'COM3' # En Windows suele ser COM3, COM4... En Mac/Linux /dev/ttyUSB0
 BAUDIOS = 9600
-ARCHIVO_CSV = "caelum_datos_vuelo.csv"
-
 FIREBASE_URL = "https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app"
-RUTA_DATOS = "/cansat/telemetria"
 
-# Orden de campos que envía el CanSat
-CABECERA = ['timestamp', 'datetime', 'lat', 'lon', 'alt', 'alt_mar', 'sats', 
-            'temp', 'hum', 'presion', 'co2', 'pm1_0', 'pm2_5', 'pm10', 
-            'accel_x', 'accel_y', 'accel_z', 'gyro_x', 'gyro_y', 'gyro_z', 'fase']
+# Carpeta de destino (Cámbiala a 'telemetria_pruebas' si estás testeando)
+CARPETA = "telemetria" 
 
-def limpiar_firebase():
-    """Borra datos anteriores"""
-    try:
-        requests.delete(f"{FIREBASE_URL}{RUTA_DATOS}.json")
-        print("🗑️ Telemetría anterior borrada")
-    except:
-        pass
-
-def parsear_linea(linea):
-    """Convierte línea CSV en diccionario"""
-    datos = linea.split(',')
-    if len(datos) < 10:
-        return None
-    
-    payload = {}
-    for i, campo in enumerate(CABECERA):
-        if i < len(datos):
-            try:
-                valor = datos[i].strip()
-                if '.' in valor:
-                    payload[campo] = float(valor)
-                else:
-                    payload[campo] = int(valor)
-            except:
-                payload[campo] = datos[i].strip()
-    return payload
-
-def main():
-    print("=" * 60)
-    print("🛰️ RECEPTOR TELEMETRÍA → /cansat/telemetria/")
-    print("=" * 60)
-    print(f"📡 Puerto: {PUERTO_SERIAL}")
-    print(f"💾 CSV: {ARCHIVO_CSV}")
-    print("=" * 60)
-    
-    limpiar_firebase()
-    contador = 0
-    
+def leer_puerto_serie():
     try:
         ser = serial.Serial(PUERTO_SERIAL, BAUDIOS, timeout=1)
-        print("\n⏳ Esperando datos del CanSat...\n")
+        print(f"✅ Conectado al puerto {PUERTO_SERIAL}")
         
-        with open(ARCHIVO_CSV, 'w', newline='') as f:
-            escritor = csv.writer(f)
-            escritor.writerow(CABECERA)
-            
-            while True:
-                linea = ser.readline().decode('utf-8', errors='ignore').strip()
+        while True:
+            linea = ser.readline().decode('utf-8').strip()
+            if linea:
+                # Suponiendo que el Arduino manda: lat,lon,alt,presion,temp,co2,pm25,pm10,ax,ay,az,gx,gz
+                datos = linea.split(',')
                 
-                if linea:
-                    # Guardar en CSV
-                    escritor.writerow(linea.split(','))
-                    f.flush()
+                if len(datos) >= 13: # Asegúrate de que coincida con el número de datos que envías
+                    payload = {
+                        "latitud": float(datos[0]),
+                        "longitud": float(datos[1]),
+                        "altitud": float(datos[2]),
+                        "presion": float(datos[3]),
+                        "temp": float(datos[4]),
+                        "co2": float(datos[5]),
+                        "pm2_5": float(datos[6]),
+                        "pm10": float(datos[7]),
+                        "accelX": float(datos[8]),
+                        "accelY": float(datos[9]),
+                        "accelZ": float(datos[10]),
+                        "rotX": float(datos[11]),
+                        "rotZ": float(datos[12])
+                    }
                     
-                    # Enviar a Firebase
-                    payload = parsear_linea(linea)
-                    if payload:
-                        contador += 1
-                        try:
-                            url = f"{FIREBASE_URL}{RUTA_DATOS}/{int(time.time()*1000)}.json"
-                            requests.put(url, json=payload, timeout=0.5)
-                            print(f"📡 [{contador:4d}] Alt={payload.get('alt',0):6.1f}m | "
-                                  f"CO2={payload.get('co2',0)}ppm | PM2.5={payload.get('pm2_5',0)}µg/m³ ✅")
-                        except:
-                            print(f"📡 [{contador:4d}] ⚠️ Firebase offline (CSV guardado)")
-    
-    except serial.SerialException as e:
-        print(f"❌ Error puerto: {e}")
-        print(f"   Verifica: {PUERTO_SERIAL}")
-    except KeyboardInterrupt:
-        print(f"\n\n🛑 RECEPCIÓN FINALIZADA")
-        print(f"   ✅ Paquetes: {contador}")
-        print(f"   💾 Guardado: {ARCHIVO_CSV}")
+                    requests.post(f"{FIREBASE_URL}/cansat/{CARPETA}.json", json=payload)
+                    print(f"📡 DATO REAL ENVIADO -> Alt: {payload['altitud']}m")
+                    
+    except Exception as e:
+        print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
-    main()
+    leer_puerto_serie()
+
