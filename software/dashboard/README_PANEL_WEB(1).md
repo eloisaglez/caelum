@@ -143,17 +143,6 @@ https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app
 
 ---
 
-## 🔥 Detección de Firmas de Combustión
-
-| CO2 | PM2.5 | Interpretación |
-|-----|-------|----------------|
-| Alto (>600) | Alto (>55) | 🔥 Combustión activa |
-| Alto (>600) | Bajo (<35) | 😤 Respiración/fermentación |
-| Bajo (<500) | Alto (>55) | 🌫️ Polvo sin combustión |
-| Bajo (<450) | Bajo (<12) | 🌿 Aire limpio |
-
----
-
 ## 🧪 Probar Localmente
 
 ```bash
