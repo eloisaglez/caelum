@@ -3,25 +3,32 @@
 Panel de control en tiempo real para visualización de datos del CanSat conectado a Firebase Realtime Database.
 
 ---
+Sistema unificado para la gestión de datos CanSat.
 
-## 🗂️ Estructura de Datos en Firebase
+## 🗂️ Estructura de Firebase
+- `/cansat/telemetria`: Datos en vivo del concurso.
+- `/cansat/pruebas`: Testeo de sensores.
+- `/cansat/replay`: Reproducción de `caelum_datos_vuelo.csv`.
+- `/cansat/simulacion`: Datos de `vuelo_brunete_17marzo.csv`.
 
-El sistema organiza la información en cuatro ramas principales dentro de `cansat/`:
+## 📊 Diccionario de Datos Único (21 Campos)
+Todos los sistemas usan estas claves exactas:
+`timestamp`, `datetime`, `lat`, `lon`, `alt`, `alt_mar`, `sats`, `temp`, `hum`, `presion`, `co2`, `pm1_0`, `pm2_5`, `pm10`, `accel_x`, `accel_y`, `accel_z`, `gyro_x`, `gyro_y`, `gyro_z`, `fase`.
 
-* **telemetria**: Datos en directo durante el concurso.
-* **pruebas**: Testeo de sensores en tiempo real sin almacenamiento local.
-* **replay**: Reproducción de vuelos grabados (`caelum_datos_vuelo.csv`).
-* **simulacion**: Datos de vuelos históricos o simulados (`vuelo_brunete_17marzo.csv`).
+## 🚀 Guía de Scripts
+1. **PC**: Usa `receptor_telemetria.py` para Concurso y Pruebas.
+2. **Nube (Colab)**: Usa `replay_nube.py` para Replay y Simulación.
+3. **Web**: `caelum_dashboard.html` para visualizar todo.
 
 
 ## 🚀 Motores de Ejecución (Scripts Python)
 
-### 1. Motor Local (PC) - `receptor_telemetria.py`
+### 1. Receptor_telemetria (PC) - `receptor_telemetria.py`
 * **Funciones**: Lee el puerto serie (USB/APC220), autoinstala librerías (`requests`, `pyserial`) y limpia Firebase al iniciar.
 * **Modo Concurso**: Envía a `/telemetria` y genera automáticamente el archivo `caelum_datos_vuelo.csv`.
 * **Modo Pruebas**: Envía a `/pruebas` para verificar sensores sin guardar archivos.
 
-### 2. Motor Nube (Colab) - `replay_nube.py`
+### 2. Replay_nube (Colab) - `replay_nube.py`
 * **Funciones**: Detecta automáticamente el archivo subido a Google Colab.
 * **Lógica**: 
     * Si detecta `caelum_datos_vuelo.csv` → Modo **REPLAY**.
@@ -30,9 +37,19 @@ El sistema organiza la información en cuatro ramas principales dentro de `cansa
 **Nota:** Las carpetas se crean automáticamente cuando el script envía el primer dato. Los scripts borran datos anteriores de su carpeta antes de empezar.
 
 ---
-## 🎨 Panel de Control (HTML)
+# 🌐 CANSAT - Panel Web de Telemetría (Misión CAELUM)
 
-El panel `caelum_dashboard.html` incluye ahora un selector con **4 pestañas** para sincronizarse con los motores:
+Este proyecto permite la visualización en tiempo real de la telemetría del CanSat mediante una arquitectura de doble motor (PC y Nube) conectada a Firebase Realtime Database.
+
+## 🎨 Panel de Control (HTML)
+**Características:**
+- ✅ Mapa satelital ArcGIS
+- ✅ CanSat 3D con orientación
+- ✅ Gráficos de altitud, presión y temperatura
+- ✅ Panel de calidad del aire (CO2 + PM2.5)
+- ✅ Indicador de firmas de combustión
+
+Incluye ahora un selector con **4 pestañas** para sincronizarse con los motores:
 - ✅ **CONCURSO LIVE**: Conectado a `/telemetria`.
 - ✅ **PRUEBAS SENSORES**: Conectado a `/pruebas`.
 - ✅ **REPLAY VUELO**: Conectado a `/replay`.
@@ -40,28 +57,11 @@ El panel `caelum_dashboard.html` incluye ahora un selector con **4 pestañas** p
 
 ---
 
-## 📊 Sensores y Telemetría
-
-### Hardware Utilizado
-* **Arduino Nano 33 BLE**: Presión (LPS22HB), Temperatura (HS3003), Acelerómetro y Giroscopio.
-* **GPS ATGM336H**: Posicionamiento global (Latitud, Longitud).
-* **SCD40**: Medición de CO2 (ppm).
-* **HM3301**: Sensores de partículas (PM2.5 y PM10).
-
-**Características:**
-- ✅ Mapa satelital ArcGIS
-- ✅ CanSat 3D con orientación
-- ✅ Gráficos de altitud, presión y temperatura
-- ✅ Panel de calidad del aire (CO2 + PM2.5)
-- ✅ Indicador de firmas de combustión
-- ✅ Selector de modo: Directo / Replay / Simulación / Pruebas
-
----
-# 🌐 CANSAT - Panel Web de Telemetría (Misión CAELUM)
-
-Este proyecto permite la visualización en tiempo real de la telemetría del CanSat mediante una arquitectura de doble motor (PC y Nube) conectada a Firebase Realtime Database.
-
----
+#**🔧 Solución de Problemas **
+**Problema**                  **Solución**
+Error 'ModuleNotFoundError'	El script de PC instala automáticamente requests y pyserial. Solo asegúrate de tener conexión a internet al ejecutarlo por primera vez.
+No se ven datos en el panel	Asegurarse de que el modo seleccionado en el selector del HTML coincide con el modo ejecutado en Python.
+Puerto serie no encontrado	   Verificar el nombre del puerto (COM3, COM4, etc.) en el administrador de dispositivos y actualízalo en motor_pc.py.
 
 ## 📊 Estructura de Datos Oficial (JSON)
 
@@ -121,25 +121,6 @@ https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app
 
 ---
 
-## 📊 Sensores Visualizados
-
-### Sensores Integrados (Arduino Nano 33 BLE)
-| Sensor | Datos |
-|--------|-------|
-| LPS22HB | Presión, Altitud |
-| HS3003 | Temperatura, Humedad |
-| BMI270 | Acelerómetro (X,Y,Z) |
-| BMM150 | Giroscopio (X,Y,Z) |
-
-### Sensores Externos
-| Sensor | Datos |
-|--------|-------|
-| GPS ATGM336H | Latitud, Longitud, Altitud, Satélites |
-| SCD40 | CO2 (ppm) |
-| HM3301 | PM1.0, PM2.5, PM10 (µg/m³) |
-
----
-
 ## 🧪 Probar Localmente
 
 ```bash
@@ -189,8 +170,6 @@ Una vez desplegado:
 | Datos no aparecen | Verificar modo correcto seleccionado |
 | Error CORS | Usar servidor HTTP, no `file://` |
 | Firebase offline | Verificar URL y reglas de seguridad |
-
----
 
 
 ---
