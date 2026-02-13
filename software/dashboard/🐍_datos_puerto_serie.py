@@ -1,63 +1,111 @@
+"""
 # ============================================================================
 # PROYECTO: CANSAT CAELUM (IES DIEGO VELÁZQUEZ)
 # PROGRAMA: Estación de Tierra (Telemetría en Tiempo Real)
 # OBJETIVO: Leer datos del puerto serie (Radio/USB), subirlos a la nube
 #           y generar un respaldo local en formato CSV.
-# ENTORNO: Thonny / Python Local
-# ============================================================================
+# Recibe datos del APC220 por puerto COM
+# Guarda en CSV + envía a Firebase
+# Ruta Firebase: /cansat/telemetria/
+# Uso: DÍA DEL CONCURSO
+# # ============================================================================
+"""
 
 import serial
 import csv
 import requests
 import time
+from datetime import datetime
 
-# === CONFIGURACIÓN ===
-PUERTO_SERIAL = 'COM3'  # Cambiar según el puerto del receptor
+# ============================================
+# CONFIGURACIÓN
+# ============================================
+
+PUERTO_SERIAL = 'COM3'  # Cambiar según tu puerto
 BAUDIOS = 9600
-ARCHIVO_CSV = "datos_vuelo.csv"
-FIREBASE_URL = "https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app/cansat/telemetria.json"
+ARCHIVO_CSV = "caelum_datos_vuelo.csv"
 
-def iniciar_estacion_tierra():
-    print(f"🚀 CAELUM Ground Station: Escuchando en {PUERTO_SERIAL}...")
+FIREBASE_URL = "https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app"
+RUTA_DATOS = "/cansat/telemetria"
+
+# Orden de campos que envía el CanSat
+CABECERA = ['timestamp', 'datetime', 'lat', 'lon', 'alt', 'alt_mar', 'sats', 
+            'temp', 'hum', 'presion', 'co2', 'pm1_0', 'pm2_5', 'pm10', 
+            'accel_x', 'accel_y', 'accel_z', 'gyro_x', 'gyro_y', 'gyro_z', 'fase']
+
+def limpiar_firebase():
+    """Borra datos anteriores"""
+    try:
+        requests.delete(f"{FIREBASE_URL}{RUTA_DATOS}.json")
+        print("🗑️ Telemetría anterior borrada")
+    except:
+        pass
+
+def parsear_linea(linea):
+    """Convierte línea CSV en diccionario"""
+    datos = linea.split(',')
+    if len(datos) < 10:
+        return None
+    
+    payload = {}
+    for i, campo in enumerate(CABECERA):
+        if i < len(datos):
+            try:
+                valor = datos[i].strip()
+                if '.' in valor:
+                    payload[campo] = float(valor)
+                else:
+                    payload[campo] = int(valor)
+            except:
+                payload[campo] = datos[i].strip()
+    return payload
+
+def main():
+    print("=" * 60)
+    print("🛰️ RECEPTOR TELEMETRÍA → /cansat/telemetria/")
+    print("=" * 60)
+    print(f"📡 Puerto: {PUERTO_SERIAL}")
+    print(f"💾 CSV: {ARCHIVO_CSV}")
+    print("=" * 60)
+    
+    limpiar_firebase()
+    contador = 0
     
     try:
         ser = serial.Serial(PUERTO_SERIAL, BAUDIOS, timeout=1)
+        print("\n⏳ Esperando datos del CanSat...\n")
         
-        # Abrimos el archivo para escribir los datos del concurso
-        with open(ARCHIVO_CSV, mode='a', newline='') as fichero:
-            escritor = csv.writer(fichero)
+        with open(ARCHIVO_CSV, 'w', newline='') as f:
+            escritor = csv.writer(f)
+            escritor.writerow(CABECERA)
             
-            # Si el archivo está vacío, podrías escribir la cabecera aquí:
-            # escritor.writerow(['ts', 'alt', 'temp', 'pres', 'co2', 'lat', 'lon', 'pm25', 'pm10', 'ax', 'ay', 'az', 'rx', 'ry', 'rz'])
-
             while True:
                 linea = ser.readline().decode('utf-8', errors='ignore').strip()
                 
                 if linea:
-                    datos = linea.split(',')
-                    escritor.writerow(datos)
+                    # Guardar en CSV
+                    escritor.writerow(linea.split(','))
+                    f.flush()
                     
-                    # --- SEGURIDAD CAELUM ---
-                    # 'flush' obliga a Windows a guardar el dato en el disco duro al instante.
-                    # Si el PC se cuelga, los datos del vuelo NO se pierden.
-                    fichero.flush() 
-                    
-                    # Envío a Firebase para el Dashboard en tiempo real
-                    try:
-                        # Estructura de ejemplo (ajustar según vuestro orden de sensores)
-                        payload = {"alt": datos[1], "temp": datos[2], "ts": datos[0]}
-                        requests.post(FIREBASE_URL, json=payload, timeout=0.5)
-                    except:
-                        pass # Si falla el WiFi, el CSV sigue guardando todo
-                    
-                    print(f"📡 Recibido: {linea}")
-
+                    # Enviar a Firebase
+                    payload = parsear_linea(linea)
+                    if payload:
+                        contador += 1
+                        try:
+                            url = f"{FIREBASE_URL}{RUTA_DATOS}/{int(time.time()*1000)}.json"
+                            requests.put(url, json=payload, timeout=0.5)
+                            print(f"📡 [{contador:4d}] Alt={payload.get('alt',0):6.1f}m | "
+                                  f"CO2={payload.get('co2',0)}ppm | PM2.5={payload.get('pm2_5',0)}µg/m³ ✅")
+                        except:
+                            print(f"📡 [{contador:4d}] ⚠️ Firebase offline (CSV guardado)")
+    
+    except serial.SerialException as e:
+        print(f"❌ Error puerto: {e}")
+        print(f"   Verifica: {PUERTO_SERIAL}")
     except KeyboardInterrupt:
-        print("\n🛑 Detención manual. Cerrando puerto y guardando archivo...")
-    except Exception as e:
-        print(f"❌ Error: {e}")
-    finally:
-        print("✅ Fichero 'datos_vuelo.csv' cerrado correctamente.")
+        print(f"\n\n🛑 RECEPCIÓN FINALIZADA")
+        print(f"   ✅ Paquetes: {contador}")
+        print(f"   💾 Guardado: {ARCHIVO_CSV}")
 
 if __name__ == "__main__":
-    iniciar_estacion_tierra()
+    main()
