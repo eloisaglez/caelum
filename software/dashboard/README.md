@@ -4,30 +4,49 @@ Panel de control en tiempo real para visualización de datos del CanSat conectad
 
 ---
 
-## 🗂️ Estructura Firebase
+## 🗂️ Estructura de Datos en Firebase
 
-```
-cansat/
-├── telemetria/    ← Día del concurso (datos en directo)
-├── replay/        ← Reproducir vuelos grabados
-├── simulacion/    ← Datos del simulador Python
-└── pruebas/       ← Probar sensores reales
-```
+El sistema organiza la información en cuatro ramas principales dentro de `cansat/`:
 
-| Carpeta | Script Python | Cuándo usar |
-|---------|---------------|-------------|
-| **telemetria** | `receptor_telemetria.py` | 🔴 Día del concurso |
-| **replay** | `reproductor_replay.py` | ⏪ Revisar vuelos después |
-| **simulacion** | `simulador_firebase.py` | 🧪 Probar panel sin hardware |
-| **pruebas** | `enviar_pruebas.py` | 🔧 Probar sensores antes del concurso |
+* **telemetria**: Datos en directo durante el concurso.
+* **pruebas**: Testeo de sensores en tiempo real sin almacenamiento local.
+* **replay**: Reproducción de vuelos grabados (`caelum_datos_vuelo.csv`).
+* **simulacion**: Datos de vuelos históricos o simulados (`vuelo_brunete_17marzo.csv`).
+
+
+## 🚀 Motores de Ejecución (Scripts Python)
+
+### 1. Motor Local (PC) - `receptor_telemetria.py`
+* **Funciones**: Lee el puerto serie (USB/APC220), autoinstala librerías (`requests`, `pyserial`) y limpia Firebase al iniciar.
+* **Modo Concurso**: Envía a `/telemetria` y genera automáticamente el archivo `caelum_datos_vuelo.csv`.
+* **Modo Pruebas**: Envía a `/pruebas` para verificar sensores sin guardar archivos.
+
+### 2. Motor Nube (Colab) - `replay_nube.py`
+* **Funciones**: Detecta automáticamente el archivo subido a Google Colab.
+* **Lógica**: 
+    * Si detecta `caelum_datos_vuelo.csv` → Modo **REPLAY**.
+    * Si detecta `vuelo_brunete_17marzo.csv` → Modo **SIMULACIÓN**.
 
 **Nota:** Las carpetas se crean automáticamente cuando el script envía el primer dato. Los scripts borran datos anteriores de su carpeta antes de empezar.
 
 ---
+## 🎨 Panel de Control (HTML)
 
-## 🎨 Panel de Control
+El panel `caelum_dashboard.html` incluye ahora un selector con **4 pestañas** para sincronizarse con los motores:
+- ✅ **CONCURSO LIVE**: Conectado a `/telemetria`.
+- ✅ **PRUEBAS SENSORES**: Conectado a `/pruebas`.
+- ✅ **REPLAY VUELO**: Conectado a `/replay`.
+- ✅ **SIMULACIÓN**: Conectado a `/simulacion`.
 
-### **cansat_firebase.html**
+---
+
+## 📊 Sensores y Telemetría
+
+### Hardware Utilizado
+* **Arduino Nano 33 BLE**: Presión (LPS22HB), Temperatura (HS3003), Acelerómetro y Giroscopio.
+* **GPS ATGM336H**: Posicionamiento global (Latitud, Longitud).
+* **SCD40**: Medición de CO2 (ppm).
+* **HM3301**: Sensores de partículas (PM2.5 y PM10).
 
 **Características:**
 - ✅ Mapa satelital ArcGIS
@@ -38,52 +57,16 @@ cansat/
 - ✅ Selector de modo: Directo / Replay / Simulación / Pruebas
 
 ---
+# 🌐 CANSAT - Panel Web de Telemetría (Misión CAELUM)
 
-## 🚀 Uso Rápido
-
-### Probar sin hardware (simulación)
-```bash
-python simulador_firebase.py
-# Panel web → Modo: Simulación
-```
-
-### Probar sensores reales
-```bash
-python enviar_pruebas.py
-# Panel web → Modo: Pruebas
-```
-
-### Día del concurso
-```bash
-python receptor_telemetria.py
-# Panel web → Modo: Directo
-# Guarda CSV automáticamente
-```
-
-### Revisar vuelo después
-```bash
-python reproductor_replay.py caelum_datos_vuelo.csv
-# Panel web → Modo: Replay
-```
+Este proyecto permite la visualización en tiempo real de la telemetría del CanSat mediante una arquitectura de doble motor (PC y Nube) conectada a Firebase Realtime Database.
 
 ---
 
-## 🔧 Configuración Firebase
+## 📊 Estructura de Datos Oficial (JSON)
 
-### URL Base
-```
-https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app
-```
+Cada paquete enviado a Firebase sigue este formato estricto para asegurar la compatibilidad con el panel web:
 
-### Rutas de Datos
-```
-/cansat/telemetria/[timestamp]/   ← Concurso
-/cansat/replay/[timestamp]/       ← Reproducción
-/cansat/simulacion/[timestamp]/   ← Simulador
-/cansat/pruebas/[timestamp]/      ← Pruebas
-```
-
-### Estructura de Datos
 ```json
 {
   "timestamp": 0,
@@ -108,6 +91,20 @@ https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app
   "gyro_z": 1.0,
   "fase": "descenso"
 }
+
+## 🔧 Configuración Firebase
+
+### URL Base
+```
+https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app
+```
+
+### Rutas de Datos
+```
+/cansat/telemetria/[timestamp]/   ← Concurso
+/cansat/replay/[timestamp]/       ← Reproducción
+/cansat/simulacion/[timestamp]/   ← Simulador
+/cansat/pruebas/[timestamp]/      ← Pruebas
 ```
 
 ### Reglas de Seguridad
@@ -195,14 +192,6 @@ Una vez desplegado:
 
 ---
 
-## 📁 Scripts Python
-
-| Script | Función |
-|--------|---------|
-| `receptor_telemetria.py` | Recibe del APC220, guarda caelum_datos_vuelo.csv, envía a /telemetria/ |
-| `reproductor_replay.py` | Reproduce CSV a /replay/ |
-| `simulador_firebase.py` | Genera datos simulados a /simulacion/ |
-| `enviar_pruebas.py` | Recibe del COM, envía a /pruebas/ (sin guardar CSV) |
 
 ---
 
