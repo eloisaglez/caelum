@@ -2,8 +2,6 @@
 //  TEST: Módulo MicroSD Adafruit + Sensores Integrados
 //  Hardware : Arduino Nano 33 BLE Sense Rev2
 //  Módulo SD: Adafruit MicroSD SPI or SDIO Card Breakout Board
-//  Archivo  : TEST_MicroSD_Sensores.ino
-//  Autor    : Eloísa González Medina — IES Diego Velázquez
 //  Proyecto : CanSat — Misión 2 Detección de Firmas de Combustión
 // =============================================================
 
