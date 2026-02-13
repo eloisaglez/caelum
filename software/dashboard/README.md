@@ -148,7 +148,7 @@ firebase deploy --only hosting
 
 ---
 
-## 📱 Acceso Móvil
+## 📱 Acceso Móvil (REVISAR) ‼️
 
 Una vez desplegado:
 1. Abre: `https://cansat-66d98.web.app`
