@@ -4,99 +4,51 @@
     <title>CANSAT: CAELUM - MISSION CONTROL</title>
     <meta charset="utf-8">
     <style>
-        /* --- ESTILOS GENERALES --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', 'Roboto', monospace;
-            background: #101010;
-            color: #eee;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            background: #101010; color: #eee; height: 100vh;
+            overflow: hidden; display: flex; flex-direction: column;
         }
-
         .header {
-            height: 55px;
-            background: #000;
-            border-bottom: 2px solid #ffd700;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 15px;
-            z-index: 10;
+            height: 55px; background: #000; border-bottom: 2px solid #ffd700;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 10;
         }
-
         .logo-ies {
-            background: #fff;
-            color: #000;
-            padding: 4px 12px;
-            font-weight: 900;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            text-transform: uppercase;
+            background: #fff; color: #000; padding: 4px 12px; font-weight: 900;
+            border-radius: 4px; font-size: 0.8rem; text-transform: uppercase;
         }
-
-        /* SELECTOR DE MISIÓN */
         .mission-selector {
-            background: #1a1a1a;
-            color: #ffd700;
-            border: 1px solid #ffd700;
-            padding: 6px 12px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            outline: none;
-            transition: 0.3s;
+            background: #1a1a1a; color: #ffd700; border: 1px solid #ffd700;
+            padding: 6px 12px; font-size: 0.85rem; font-weight: bold; border-radius: 4px; cursor: pointer;
         }
-        .mission-selector:hover {
-            background: #ffd700;
-            color: #000;
-        }
-
-        /* --- LAYOUT --- */
         .main-grid {
-            display: grid;
-            grid-template-columns: 50% 50%;
-            height: calc(100vh - 55px);
-            gap: 4px;
-            background: #2a2a2a;
+            display: grid; grid-template-columns: 50% 50%; height: calc(100vh - 55px);
+            gap: 4px; background: #2a2a2a;
         }
-
         .left-panel { background: #000; display: grid; grid-template-rows: 55% 45%; gap: 4px; }
         #mapa { width: 100%; height: 100%; background: #111; }
-
         .instruments-deck { background: #080808; display: flex; border-top: 2px solid #333; }
-        .deck-3d { flex: 1.2; position: relative; background: radial-gradient(circle at center, #222 0%, #000 100%); border-right: 1px solid #333; overflow: hidden; }
-        .deck-gauges { flex: 0.8; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; padding: 10px; background: #050505; }
-        
-        .gauge-row { display: flex; align-items: center; width: 100%; justify-content: space-between; padding: 8px 15px; background: #111; border-radius: 6px; border-left: 4px solid #333; }
-        canvas.gauge { width: 75px; height: 75px; }
-        .g-label { font-size: 0.75rem; font-weight: bold; color: #aaa; width: 50px;}
-        .g-val { font-size: 1rem; font-family: monospace; color: #ffd700; width: 60px; text-align: right;}
-
+        .deck-3d { flex: 1.2; position: relative; overflow: hidden; background: radial-gradient(circle at center, #222 0%, #000 100%); }
+        .deck-gauges { flex: 0.8; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 10px; }
+        .gauge-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 15px; background: #111; border-radius: 6px; border-left: 4px solid #333; }
+        canvas.gauge { width: 70px; height: 70px; }
+        .g-val { font-family: monospace; color: #ffd700; font-weight: bold; }
         .right-panel { background: #141414; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
         .kpi-row { display: flex; gap: 10px; height: 65px; }
-        .kpi-box { flex: 1; background: #222; padding: 5px 12px; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; border-bottom: 3px solid #444; }
-        .kpi-val { font-size: 1.5rem; font-weight: bold; color: #fff; }
-        .kpi-lbl { font-size: 0.65rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-
-        .charts-group { flex: 1; display: grid; grid-template-rows: 1fr 1fr 1fr; gap: 6px; }
+        .kpi-box { flex: 1; background: #222; padding: 5px 12px; border-radius: 4px; border-bottom: 3px solid #444; }
+        .kpi-val { font-size: 1.4rem; font-weight: bold; }
+        .kpi-lbl { font-size: 0.6rem; color: #888; text-transform: uppercase; }
+        .charts-group { flex: 1; display: grid; grid-template-rows: repeat(3, 1fr); gap: 6px; }
         .chart-mini { background: #1a1a1a; border-radius: 4px; border: 1px solid #333; display: flex; flex-direction: column; }
-        .panel-header { background: #252525; padding: 5px 12px; font-size: 0.8rem; color: #ddd; font-weight: bold; display: flex; justify-content: space-between; }
+        .panel-header { background: #252525; padding: 4px 10px; font-size: 0.75rem; color: #bbb; font-weight: bold; }
         .chart-body { flex: 1; position: relative; }
-
-        .gas-panel { height: 140px; background: #111; border-radius: 6px; border: 1px solid #333; display: flex; flex-direction: column; }
-        .gas-body { padding: 12px; display: flex; flex-direction: column; justify-content: space-around; flex: 1; }
-        .bar-row { display: flex; align-items: center; margin-bottom: 5px; }
-        .bar-lbl { width: 70px; font-size: 0.75rem; color: #aaa; }
-        .bar-bg { flex: 1; background: #222; height: 12px; border-radius: 6px; overflow: hidden; margin: 0 12px; border: 1px solid #333; }
-        .bar-fill { height: 100%; transition: width 0.5s ease; box-shadow: 0 0 10px currentColor; }
-        .bar-num { width: 55px; text-align: right; font-family: monospace; color: #ffd700; font-weight: bold; }
-        .axes-legend { position: absolute; bottom: 8px; left: 8px; font-size: 0.7rem; color: #555; }
+        .gas-panel { height: 130px; background: #111; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; justify-content: space-around; }
+        .bar-row { display: flex; align-items: center; }
+        .bar-lbl { width: 60px; font-size: 0.7rem; color: #aaa; }
+        .bar-bg { flex: 1; background: #222; height: 10px; border-radius: 5px; margin: 0 10px; overflow: hidden; }
+        .bar-fill { height: 100%; transition: width 0.4s; }
     </style>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -107,52 +59,42 @@
     <div class="header">
         <div style="display: flex; align-items: center; gap: 15px;">
             <div class="logo-ies">IES DIEGO VELÁZQUEZ</div>
-            <div><span style="color:#ffd700; font-weight: 900;">CAELUM</span> | MISSION CONTROL</div>
+            <div style="font-weight: bold;"><span style="color:#ffd700">CAELUM</span> | MISSION CONTROL</div>
         </div>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <select id="missionSelect" class="mission-selector">
-                <option value="telemetria_real">📡 CONCURSO LIVE</option>
-                <option value="telemetria_pruebas">🧪 PRUEBAS SENSORES</option>
-                <option value="simulacion">✈️ SIMULACIÓN</option>
-                <option value="replay">⏪ REPLAY VUELO</option>
-            </select>
-            <div style="font-family: monospace; color: #00ff00; font-size: 0.8rem; min-width: 150px; text-align: right;" id="status">SISTEMA LISTO</div>
-        </div>
+        <select id="missionSelect" class="mission-selector">
+            <option value="replay">⏪ REPLAY VUELO</option>
+            <option value="simulacion">✈️ SIMULACIÓN</option>
+            <option value="telemetria">📡 LIVE</option>
+        </select>
     </div>
 
     <div class="main-grid">
         <div class="left-panel">
             <div id="mapa"></div>
             <div class="instruments-deck">
-                <div class="deck-3d" id="cont-3d">
-                    <div class="axes-legend">X: ROJO | Y: VERDE | Z: AZUL</div>
-                </div>
+                <div class="deck-3d" id="cont-3d"></div>
                 <div class="deck-gauges">
-                    <div class="gauge-row" style="border-left-color: #00ffff;"><span class="g-label">ACC X</span><canvas id="g-x" class="gauge"></canvas><span class="g-val" id="txt-acc-x">0.0</span></div>
-                    <div class="gauge-row" style="border-left-color: #00ff00;"><span class="g-label">ACC Y</span><canvas id="g-y" class="gauge"></canvas><span class="g-val" id="txt-acc-y">0.0</span></div>
-                    <div class="gauge-row" style="border-left-color: #ff4444;"><span class="g-label">ACC Z</span><canvas id="g-z" class="gauge"></canvas><span class="g-val" id="txt-acc-z">1.0</span></div>
+                    <div class="gauge-row" style="border-left-color: #00ffff;"><span style="font-size:0.7rem">ACC X</span><canvas id="g-x" class="gauge"></canvas><span class="g-val" id="txt-x">0.0</span></div>
+                    <div class="gauge-row" style="border-left-color: #00ff00;"><span style="font-size:0.7rem">ACC Y</span><canvas id="g-y" class="gauge"></canvas><span class="g-val" id="txt-y">0.0</span></div>
+                    <div class="gauge-row" style="border-left-color: #ff4444;"><span style="font-size:0.7rem">ACC Z</span><canvas id="g-z" class="gauge"></canvas><span class="g-val" id="txt-z">1.0</span></div>
                 </div>
             </div>
         </div>
-
         <div class="right-panel">
             <div class="kpi-row">
-                <div class="kpi-box" style="border-bottom-color:#fff"><div class="kpi-lbl">ALTITUD (m)</div><div class="kpi-val" id="val-alt">0</div></div>
-                <div class="kpi-box" style="border-bottom-color:#00aaff"><div class="kpi-lbl">PRESIÓN (hPa)</div><div class="kpi-val" id="val-press">0</div></div>
-                <div class="kpi-box" style="border-bottom-color:#ff9900"><div class="kpi-lbl">TEMP (°C)</div><div class="kpi-val" id="val-temp">0</div></div>
+                <div class="kpi-box" style="border-bottom-color:#fff"><div class="kpi-lbl">ALTITUD</div><div class="kpi-val" id="val-alt">0</div></div>
+                <div class="kpi-box" style="border-bottom-color:#00aaff"><div class="kpi-lbl">PRESIÓN</div><div class="kpi-val" id="val-press">0</div></div>
+                <div class="kpi-box" style="border-bottom-color:#ff9900"><div class="kpi-lbl">TEMP</div><div class="kpi-val" id="val-temp">0</div></div>
             </div>
             <div class="charts-group">
-                <div class="chart-mini"><div class="panel-header">GRÁFICA DE ALTITUD</div><div class="chart-body"><canvas id="c-alt"></canvas></div></div>
-                <div class="chart-mini"><div class="panel-header">PRESIÓN ATMOSFÉRICA</div><div class="chart-body"><canvas id="c-press"></canvas></div></div>
-                <div class="chart-mini"><div class="panel-header">TEMPERATURA AMBIENTE</div><div class="chart-body"><canvas id="c-temp"></canvas></div></div>
+                <div class="chart-mini"><div class="panel-header">ALTITUD (m)</div><div class="chart-body"><canvas id="c-alt"></canvas></div></div>
+                <div class="chart-mini"><div class="panel-header">PRESIÓN (hPa)</div><div class="chart-body"><canvas id="c-press"></canvas></div></div>
+                <div class="chart-mini"><div class="panel-header">TEMPERATURA (ºC)</div><div class="chart-body"><canvas id="c-temp"></canvas></div></div>
             </div>
             <div class="gas-panel">
-                <div class="panel-header">CALIDAD DEL AIRE (CO2 & PM)</div>
-                <div class="gas-body">
-                    <div class="bar-row"><span class="bar-lbl">CO2</span><div class="bar-bg"><div id="b-co2" class="bar-fill"></div></div><span class="bar-num" id="n-co2">400</span></div>
-                    <div class="bar-row"><span class="bar-lbl">PM 2.5</span><div class="bar-bg"><div id="b-pm25" class="bar-fill"></div></div><span class="bar-num" id="n-pm25">0</span></div>
-                    <div class="bar-row"><span class="bar-lbl">PM 10</span><div class="bar-bg"><div id="b-pm10" class="bar-fill"></div></div><span class="bar-num" id="n-pm10">0</span></div>
-                </div>
+                <div class="bar-row"><span class="bar-lbl">CO2</span><div class="bar-bg"><div id="b-co2" class="bar-fill"></div></div><span id="n-co2" style="font-size:0.8rem; font-family:monospace">400</span></div>
+                <div class="bar-row"><span class="bar-lbl">PM 2.5</span><div class="bar-bg"><div id="b-pm25" class="bar-fill"></div></div><span id="n-pm25" style="font-size:0.8rem; font-family:monospace">0</span></div>
+                <div class="bar-row"><span class="bar-lbl">PM 10</span><div class="bar-bg"><div id="b-pm10" class="bar-fill"></div></div><span id="n-pm10" style="font-size:0.8rem; font-family:monospace">0</span></div>
             </div>
         </div>
     </div>
@@ -163,134 +105,109 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyCA2OZ8OoN41hykh5PbSZ9eoPths-iuDfE",
-            authDomain: "cansat-66d98.firebaseapp.com",
             databaseURL: "https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "cansat-66d98",
-            storageBucket: "cansat-66d98.firebasestorage.app",
-            messagingSenderId: "219640958295",
             appId: "1:219640958295:web:42837107ac3f60e3e18212"
         };
 
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // --- MAPA ---
+        // MAPA
         const map = L.map('mapa', {zoomControl:false}).setView([40.4052, -3.9931], 16);
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
         let marker = null;
         let path = L.polyline([], {color:'#ffd700', weight:3}).addTo(map);
-        let pathPoints = [];
+        let points = [];
 
-        // --- 3D ---
+        // 3D
         const cont3d = document.getElementById('cont-3d');
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(45, cont3d.clientWidth/cont3d.clientHeight, 0.1, 100);
         const renderer = new THREE.WebGLRenderer({alpha:true, antialias:true});
         renderer.setSize(cont3d.clientWidth, cont3d.clientHeight);
         cont3d.appendChild(renderer.domElement);
-        const cansat = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 2.2, 32), new THREE.MeshPhongMaterial({color: 0xffd700, emissive: 0x221100, shininess: 80}));
-        cansat.add(new THREE.AxesHelper(2));
+        const geometry = new THREE.CylinderGeometry(0.8, 0.8, 2.2, 32);
+        const material = new THREE.MeshPhongMaterial({color: 0xffd700, shininess: 80});
+        const cansat = new THREE.Mesh(geometry, material);
         scene.add(cansat);
-        const light1 = new THREE.DirectionalLight(0xffffff, 2); light1.position.set(5,5,5); scene.add(light1);
+        const light = new THREE.DirectionalLight(0xffffff, 2); light.position.set(5,5,5); scene.add(light);
         scene.add(new THREE.AmbientLight(0x404040)); camera.position.z = 5;
-        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); } animate();
+        function anim() { requestAnimationFrame(anim); renderer.render(scene, camera); } anim();
 
-        // --- INSTRUMENTOS ---
-        function drawGauge(id, val, color) {
-            const canvas = document.getElementById(id);
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
-            const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2, r = (Math.min(w, h)/2) - 5;
-            ctx.clearRect(0,0,w,h);
-            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.strokeStyle = '#222'; ctx.lineWidth = 6; ctx.stroke();
-            const pct = Math.min(Math.max(val/20, -1), 1);
-            ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI/2, (-Math.PI/2) + (pct * Math.PI), val < 0);
-            ctx.strokeStyle = color; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.stroke();
-        }
-
+        // CHARTS & GAUGES
         const createChart = (id, color) => new Chart(document.getElementById(id), {
             type:'line', data:{labels:Array(30).fill(''), datasets:[{data:[], borderColor:color, borderWidth:2, pointRadius:0, tension:0.3}]},
-            options:{responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}, ticks:{color:'#666', font:{size:9}}}}}
+            options:{responsive:true, maintainAspectRatio:false, animation:false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{grid:{color:'#222'}} }}
         });
-        const cAlt = createChart('c-alt', '#ffffff'), cPress = createChart('c-press', '#00aaff'), cTemp = createChart('c-temp', '#ff9900');
-        const push = (c, v) => { c.data.datasets[0].data.push(v); if(c.data.datasets[0].data.length>30) c.data.datasets[0].data.shift(); c.update(); };
+        const cAlt = createChart('c-alt', '#fff'), cPress = createChart('c-press', '#00aaff'), cTemp = createChart('c-temp', '#ff9900');
+        
+        function drawG(id, val, col) {
+            const ctx = document.getElementById(id).getContext('2d');
+            ctx.canvas.width = 70; ctx.canvas.height = 70;
+            ctx.clearRect(0,0,70,70);
+            ctx.beginPath(); ctx.arc(35,35,30,0,Math.PI*2); ctx.strokeStyle='#222'; ctx.lineWidth=5; ctx.stroke();
+            ctx.beginPath(); ctx.arc(35,35,30,-Math.PI/2, (-Math.PI/2) + (Math.min(Math.abs(val)/15, 1)*Math.PI*2)); ctx.strokeStyle=col; ctx.stroke();
+        }
 
-        // --- LÓGICA DE CONEXIÓN DINÁMICA ---
-        let currentListener = null;
-        const selector = document.getElementById('missionSelect');
-
+        // CONEXIÓN
+        let listener = null;
         function connect(folder) {
-            // Limpiar datos previos
-            if (currentListener) currentListener(); 
-            pathPoints = [];
-            path.setLatLngs([]);
-            if(marker) { map.removeLayer(marker); marker = null; }
-            
-            // Limpiar gráficas
-            [cAlt, cPress, cTemp].forEach(c => { c.data.datasets[0].data = []; c.update(); });
+            if(listener) listener();
+            points = []; path.setLatLngs([]); if(marker) map.removeLayer(marker); marker = null;
 
-            const telemetriaRef = ref(database, `cansat/${folder}`);
-            const q = query(telemetriaRef, orderByKey(), limitToLast(1));
-            
-            document.getElementById('status').innerText = "CONECTANDO...";
-            
-            currentListener = onValue(q, (snapshot) => {
-                snapshot.forEach((snap) => {
-                    const d = snap.val();
-                    document.getElementById('status').innerText = "LIVE: " + folder.replace('_', ' ').toUpperCase();
+            const q = query(ref(database, `cansat/${folder}`), orderByKey(), limitToLast(1));
+            listener = onValue(q, (snap) => {
+                snap.forEach(s => {
+                    const d = s.val();
                     
-                    // 3D
+                    // --- AQUÍ ESTÁ EL CAMBIO: USAMOS TUS NOMBRES DE PYTHON ---
+                    
+                    // Rotación (Usa rotX y rotZ que envía tu Python)
                     cansat.rotation.x = (d.rotX || d.accelX || 0) * (Math.PI/180);
                     cansat.rotation.z = (d.rotZ || d.accelY || 0) * (Math.PI/180);
-
-                    // GPS
-                    if (d.latitud && d.longitud) {
+                    
+                    // Mapa (Usa latitud y longitud)
+                    if(d.latitud && d.longitud) {
                         const pos = [d.latitud, d.longitud];
-                        if (!marker) marker = L.marker(pos).addTo(map);
-                        marker.setLatLng(pos);
-                        map.panTo(pos);
-                        pathPoints.push(pos);
-                        path.setLatLngs(pathPoints);
+                        if(!marker) marker = L.marker(pos).addTo(map);
+                        marker.setLatLng(pos); map.panTo(pos);
+                        points.push(pos); path.setLatLngs(points);
                     }
-
-                    // Acelerómetro
-                    drawGauge('g-x', d.accelX || 0, '#00ffff');
-                    drawGauge('g-y', d.accelY || 0, '#00ff00');
-                    drawGauge('g-z', d.accelZ || 0, '#ff4444');
-                    document.getElementById('txt-acc-x').innerText = (d.accelX || 0).toFixed(1);
-                    document.getElementById('txt-acc-y').innerText = (d.accelY || 0).toFixed(1);
-                    document.getElementById('txt-acc-z').innerText = (d.accelZ || 0).toFixed(1);
-
-                    // Sensores
-                    document.getElementById('val-alt').innerText = (d.altitud || 0).toFixed(0);
-                    document.getElementById('val-press').innerText = (d.presion || 0).toFixed(0);
-                    document.getElementById('val-temp').innerText = (d.temp || 0).toFixed(1);
-                    push(cAlt, d.altitud || 0);
-                    push(cPress, d.presion || 0);
-                    push(cTemp, d.temp || 0);
-
-                    // Calidad Aire
-                    const setBar = (id, nId, val, max, color) => {
-                        const pct = Math.min((val / max) * 100, 100);
-                        const el = document.getElementById(id);
-                        el.style.width = pct + '%'; el.style.backgroundColor = color;
-                        document.getElementById(nId).innerText = val.toFixed(0);
+                    
+                    // Gauges (Usa accelX, accelY, accelZ)
+                    drawG('g-x', d.accelX || 0, '#00ffff'); drawG('g-y', d.accelY || 0, '#00ff00'); drawG('g-z', d.accelZ || 0, '#ff4444');
+                    document.getElementById('txt-x').innerText = (d.accelX||0).toFixed(1);
+                    document.getElementById('txt-y').innerText = (d.accelY||0).toFixed(1);
+                    document.getElementById('txt-z').innerText = (d.accelZ||1).toFixed(1);
+                    
+                    // KPIs (Usa altitud, presion, temp)
+                    document.getElementById('val-alt').innerText = (d.altitud||0).toFixed(0);
+                    document.getElementById('val-press').innerText = (d.presion||0).toFixed(0);
+                    document.getElementById('val-temp').innerText = (d.temp||0).toFixed(1);
+                    
+                    // Gráficas
+                    const push = (c, v) => { c.data.datasets[0].data.push(v); if(c.data.datasets[0].data.length>30) c.data.datasets[0].data.shift(); c.update(); };
+                    push(cAlt, d.altitud); push(cPress, d.presion); push(cTemp, d.temp);
+                    
+                    // Barras de Gases (CO2, PM)
+                    const bar = (id, nId, v, m, col) => { 
+                        document.getElementById(id).style.width = Math.min((v/m)*100, 100)+'%'; 
+                        document.getElementById(id).style.backgroundColor = col;
+                        document.getElementById(nId).innerText = (v||0).toFixed(0);
                     };
-                    setBar('b-co2', 'n-co2', d.co2 || 400, 1500, (d.co2 > 800 ? '#ff4444' : '#00ff00'));
-                    setBar('b-pm25', 'n-pm25', d.pm2_5 || 0, 100, (d.pm2_5 > 15 ? '#ff9900' : '#00aaff'));
-                    setBar('b-pm10', 'n-pm10', d.pm10 || 0, 150, '#e91e63');
+                    bar('b-co2', 'n-co2', d.co2||400, 1500, (d.co2>1000?'#ff4444':'#00ff00'));
+                    bar('b-pm25', 'n-pm25', d.pm2_5||0, 100, '#00aaff');
+                    bar('b-pm10', 'n-pm10', d.pm10||0, 150, '#e91e63');
                 });
             });
         }
-
-        selector.addEventListener('change', (e) => connect(e.target.value));
+        
+        const selector = document.getElementById('missionSelect');
+        selector.onchange = (e) => connect(e.target.value);
+        
+        // Iniciar con el valor del selector (por defecto Replay)
         connect(selector.value);
-
-        window.addEventListener('resize', () => {
-            map.invalidateSize();
-            renderer.setSize(cont3d.clientWidth, cont3d.clientHeight);
-            camera.aspect = cont3d.clientWidth/cont3d.clientHeight; camera.updateProjectionMatrix();
-        });
     </script>
 </body>
 </html>
