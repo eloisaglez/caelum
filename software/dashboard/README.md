@@ -57,12 +57,6 @@ Incluye ahora un selector con **4 pestañas** para sincronizarse con los motores
 
 ---
 
-#**🔧 Solución de Problemas **
-**Problema**                  **Solución**
-Error 'ModuleNotFoundError'	El script de PC instala automáticamente requests y pyserial. Solo asegúrate de tener conexión a internet al ejecutarlo por primera vez.
-No se ven datos en el panel	Asegurarse de que el modo seleccionado en el selector del HTML coincide con el modo ejecutado en Python.
-Puerto serie no encontrado	   Verificar el nombre del puerto (COM3, COM4, etc.) en el administrador de dispositivos y actualízalo en motor_pc.py.
-
 ## 📊 Estructura de Datos Oficial (JSON)
 
 Cada paquete enviado a Firebase sigue este formato estricto para asegurar la compatibilidad con el panel web:
