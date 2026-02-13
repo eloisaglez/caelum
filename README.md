@@ -56,7 +56,9 @@ cansat-mision2/
 │   ├── vuelo/                       # Programa final + panel web
 │   │   ├── PROGRAMA_FINAL_CANSAT.ino
 │   │   └── panel_web/
-│   │       └── cansat_firebase.html
+│   │       ├── caelum_dashboard.html
+│   │       ├── caelum_playback.py
+│   │       └── receptor_telemetria.py
 │   │
 │   └── post_vuelo/                  # Análisis después del vuelo
 │       └── python/
