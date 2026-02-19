@@ -1,0 +1,65 @@
+============================================================
+  GUÍA RÁPIDA POST-VUELO (CANSAT CAELUM)
+============================================================
+
+PASO 1: SACAR LOS DATOS DE LA SD CARD
+------------------------------------------------------------
+1. Apaga el CanSat (espera a que el LED verde se apague).
+2. Saca la tarjeta MicroSD del módulo negro (Adafruit MicroSD).
+3. Insértala en el lector de tarjetas del ordenador.
+4. Busca el archivo datos_SD.csv en la tarjeta.
+5. Cópialo a esta carpeta.
+
+   ✅ Tiene que tener 25 columnas y empezar así:
+      timestamp,datetime,lat,lon,alt,alt_mar,sats,temp_hs,...
+
+------------------------------------------------------------
+   ⚠️  SI LA SD ESTÁ VACÍA → usar el backup de RAM:
+------------------------------------------------------------
+1. Conecta el CanSat al USB SIN apagarlo antes.
+2. Si el Arduino no está en COM3, edita extraer_ram.py y cambia PUERTO.
+3. Escribe en la pantalla negra:
+
+      python extraer_ram.py
+
+4. El script lo hace todo solo y guarda datos_RAM.csv.
+
+============================================================
+
+PASO 2: GENERAR LAS GRÁFICAS Y EL MAPA
+------------------------------------------------------------
+1. Haz clic en la barra de direcciones de esta carpeta.
+2. Escribe:  cmd  y pulsa Enter (se abre pantalla negra).
+3. Escribe este comando y pulsa Enter:
+
+      python analizar_vuelo.py datos_SD.csv
+
+4. Espera unos segundos. Verás mensajes como:
+      ✅ Guardado: analisis_vuelo/graf_1_perfil_vertical.png
+      ✅ Guardado: analisis_vuelo/mapa_vuelo.html
+      ✅ ANÁLISIS COMPLETADO
+
+============================================================
+
+PASO 3: VER LOS RESULTADOS
+------------------------------------------------------------
+Se habrá creado la carpeta  analisis_vuelo/  con:
+
+  graf_1_perfil_vertical.png     → Perfiles PM2.5, CO₂ y temperatura por altitud
+  graf_2_inversiones_termicas.png → ¿Hay capas de contaminación atrapadas?
+  graf_3_validacion_cruzada.png  → Comparativa de los 3 sensores de temperatura
+  graf_4_mision_primaria.png     → Altitud, presión, velocidad y trayectoria GPS
+  mapa_vuelo.html                → Mapa interactivo (doble clic para abrir)
+  informe_vuelo.txt              → Resumen estadístico del vuelo
+
+Abre mapa_vuelo.html en el navegador para ver la trayectoria
+con los puntos coloreados por PM2.5.
+
+============================================================
+
+NOTA: Si dice "python no se reconoce", avisa al profesor.
+NOTA: Si el CSV tiene menos de 25 columnas, usa el backup de RAM.
+
+============================================================
+  Equipo CAELUM · IES Diego Velázquez · Febrero 2026
+============================================================
