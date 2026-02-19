@@ -3,7 +3,6 @@
 //  Hardware : Arduino Nano 33 BLE Sense Rev2
 //  Módulo SD: Adafruit MicroSD SPI or SDIO Card Breakout Board
 //  Archivo  : CANSAT_VUELO_INTEGRADO.ino
-//  Autor    : Eloísa González Medina — IES Diego Velázquez
 //  Proyecto : CanSat — Equipo Caelum
 //  Fecha    : 2026
 // =============================================================
