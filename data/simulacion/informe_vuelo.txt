@@ -1,0 +1,42 @@
+═══════════════════════════════════════════════════
+  CANSAT — INFORME POST-VUELO
+  IES Diego Velázquez · Equipo Caelum
+═══════════════════════════════════════════════════
+
+Muestras totales:  108
+Duración vuelo:    107 s (1.8 min)
+Altitud máxima:    975.3 m (relativa al lanzamiento)
+Altitud sobre mar: 1625.3 m
+
+──── TEMPERATURA (Validación cruzada) ────
+  HS300x  media: 9.2 °C  |  min: 5.7  |  max: 12.2
+  SCD40   media: 9.2 °C  |  min: 5.7  |  max: 12.4
+  LPS22HB media: 9.6 °C  |  min: 6.1  |  max: 12.7
+  ΔT HS-SCD media: 0.26 °C  |  máx: 0.70 °C
+  ΔT HS-LPS media: 0.42 °C  |  máx: 0.90 °C
+
+──── HUMEDAD RELATIVA ────
+  HS300x  media: 58.6 %
+  SCD40   media: 57.5 %
+  ΔHR media: 1.8 %
+
+──── CO₂ (Confirmación de sensor) ────
+  Media: 422 ppm  |  min: 410  |  max: 434
+  Rango total: 24 ppm
+  → SENSOR FUNCIONANDO CORRECTAMENTE (Δ < 30.0 ppm) ✓
+
+──── PARTÍCULAS ────
+  PM1.0  media: 4.8  |  máx: 10.2 µg/m³
+  PM2.5  media: 7.7  |  máx: 16.4 µg/m³
+  PM10   media: 10.9  |  máx: 24.1 µg/m³
+
+──── INVERSIONES TÉRMICAS ────
+  Capas con inversión detectadas: 0
+  Capas PM2.5 > 15.0 µg/m³: 0
+
+──── FASES DE VUELO ────
+  caida_libre: 5 s
+  descenso: 98 s
+  tierra: 5 s
+
+═══════════════════════════════════════════════════
