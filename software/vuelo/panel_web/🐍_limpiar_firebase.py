@@ -1,97 +1,139 @@
-"""
-============================================================
-  CANSAT CAELUM — Limpiador de Firebase
-  IES Diego Velázquez · Febrero 2026
-============================================================
-  Borra por lotes los datos de cualquier carpeta Firebase.
-  Útil cuando los scripts automáticos no pueden borrar
-  porque hay demasiados datos acumulados.
-
-  Uso:
-      python limpiar_firebase.py
-============================================================
-"""
+# ===========================================================================================
+# PROYECTO: CANSAT CAELUM (IES DIEGO VELÁZQUEZ)
+# PROGRAMA: Playback de Misión v2 (Simulador desde CSV)
+# OBJETIVO: Leer datos históricos de un archivo .csv y enviarlos a Firebase
+#           para visualizar la misión en el panel web 3D.
+#
+# RUTAS FIREBASE:
+#   caelum_datos_vuelo.csv    → /cansat/replay/    (datos reales del concurso)
+#   vuelo_brunete_17marzo.csv → /cansat/simulacion/ (datos de simulación)
+#
+# CAMPOS CSV (25 columnas):
+#   timestamp, datetime, lat, lon, alt, alt_mar, sats,
+#   temp_hs, hum_hs, temp_scd, hum_scd, temp_lps, presion,
+#   co2, pm1_0, pm2_5, pm10,
+#   accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, fase
+#
+# NOTA: Los campos se envían a Firebase con los mismos nombres que en el CSV.
+#       El dashboard los lee directamente sin renombrar.
+#
+# ENTORNO: Google Colab o PC local
+# ===========================================================================================
 
 import requests
 import time
-from concurrent.futures import ThreadPoolExecutor
+import csv
+import os
 
-BASE = "https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app"
+# === CONFIGURACIÓN ===
+FIREBASE_URL = "https://cansat-66d98-default-rtdb.europe-west1.firebasedatabase.app"
+VELOCIDAD    = 1.0   # segundos entre envíos (1.0 = tiempo real)
 
-CARPETAS = {
-    '1': '/cansat/telemetria',
-    '2': '/cansat/simulacion',
-    '3': '/cansat/replay',
-    '4': '/cansat/pruebas',
-    '5': '/cansat',           # borra TODO
+# Campos numéricos del CSV — se convierten a float al enviar
+CAMPOS_NUMERICOS = {
+    'timestamp', 'lat', 'lon', 'alt', 'alt_mar', 'sats',
+    'temp_hs', 'hum_hs', 'temp_scd', 'hum_scd', 'temp_lps', 'presion',
+    'co2', 'pm1_0', 'pm2_5', 'pm10',
+    'accel_x', 'accel_y', 'accel_z', 'gyro_x', 'gyro_y', 'gyro_z'
 }
+# Campos de texto — se envían tal cual
+CAMPOS_TEXTO = {'datetime', 'fase'}
 
-def borrar_carpeta(ruta):
-    # Obtener claves sin descargar datos
-    print(f"📡 Consultando {ruta}...")
-    try:
-        r = requests.get(f"{BASE}{ruta}.json?shallow=true", timeout=30)
-        datos = r.json()
-    except Exception as e:
-        print(f"❌ Error consultando Firebase: {e}")
-        return
-
-    if not datos:
-        print(f"✅ {ruta} ya estaba vacío")
-        return
-
-    claves = list(datos.keys())
-    print(f"🗑️  {len(claves)} entradas encontradas en {ruta}")
-
-    if len(claves) > 1000:
-        print(f"⚡ Modo rápido (paralelo) — puede tardar unos minutos...")
-        inicio = time.time()
-
-        def borrar_una(clave):
-            requests.delete(f"{BASE}{ruta}/{clave}.json", timeout=10)
-
-        with ThreadPoolExecutor(max_workers=20) as executor:
-            for i, _ in enumerate(executor.map(borrar_una, claves)):
-                if i % 5000 == 0 and i > 0:
-                    elapsed = time.time() - inicio
-                    restante = (elapsed / i) * (len(claves) - i) / 60
-                    print(f"   {i}/{len(claves)} — ~{restante:.0f} min restantes")
+def detectar_fichero():
+    """Detecta qué fichero existe y elige la ruta Firebase correspondiente."""
+    if os.path.exists("caelum_datos_vuelo.csv"):
+        return "caelum_datos_vuelo.csv", "/cansat/replay"
+    elif os.path.exists("vuelo_brunete_17marzo.csv"):
+        return "vuelo_brunete_17marzo.csv", "/cansat/simulacion"
     else:
-        print(f"🗑️  Borrando {len(claves)} entradas...")
-        for i, clave in enumerate(claves):
-            requests.delete(f"{BASE}{ruta}/{clave}.json", timeout=10)
-            if i % 50 == 0 and i > 0:
-                print(f"   {i}/{len(claves)}")
+        return None, None
 
-    print(f"✅ {ruta} limpiado ({len(claves)} entradas borradas)\n")
+def limpiar_firebase(ruta):
+    """Borra datos anteriores para que las gráficas empiecen de cero."""
+    try:
+        r = requests.delete(f"{FIREBASE_URL}{ruta}.json", timeout=10)
+        if r.status_code == 200:
+            print(f"🗑️  Datos anteriores borrados en {ruta}")
+        else:
+            print(f"⚠️  Limpieza Firebase devolvió código {r.status_code}")
+    except Exception as e:
+        print(f"⚠️  No se pudo limpiar Firebase: {e}")
 
+def construir_payload(fila):
+    """
+    Construye el payload para Firebase con los mismos nombres que el CSV.
+    No renombra campos — el dashboard los lee directamente.
+    """
+    payload = {}
+    for campo, valor in fila.items():
+        campo = campo.strip()
+        if campo in CAMPOS_NUMERICOS:
+            try:
+                payload[campo] = float(valor)
+            except (ValueError, TypeError):
+                payload[campo] = 0.0
+        elif campo in CAMPOS_TEXTO:
+            payload[campo] = str(valor).strip()
+    return payload
 
-def main():
-    print("\n" + "═" * 50)
-    print("   🗑️  CANSAT CAELUM — Limpiador de Firebase")
-    print("═" * 50)
-    print("\n¿Qué carpeta quieres borrar?\n")
-    for k, v in CARPETAS.items():
-        print(f"   {k} → {v}")
-    print()
+def ejecutar_mision():
+    archivo, ruta = detectar_fichero()
 
-    opcion = input("Elige (1-5): ").strip()
-
-    if opcion not in CARPETAS:
-        print("❌ Opción no válida")
+    if not archivo:
+        print("❌ No se detectó ningún archivo CSV.")
+        print("   Sube 'caelum_datos_vuelo.csv' o 'vuelo_brunete_17marzo.csv'")
         return
 
-    ruta = CARPETAS[opcion]
+    modo = ruta.split('/')[-1].upper()
+    print(f"\n{'═'*55}")
+    print(f"   🚀 CANSAT CAELUM — PLAYBACK v2")
+    print(f"{'═'*55}")
+    print(f"   Modo:    {modo}")
+    print(f"   Archivo: {archivo}")
+    print(f"   Ruta FB: {ruta}")
+    print(f"   Vel.:    {VELOCIDAD}s por muestra")
+    print(f"{'═'*55}\n")
 
-    if opcion == '5':
-        confirma = input(f"\n⚠️  Vas a borrar TODO /cansat. ¿Seguro? (escribe SI): ")
-        if confirma.strip().upper() != 'SI':
-            print("Cancelado.")
-            return
+    limpiar_firebase(ruta)
 
-    print()
-    borrar_carpeta(ruta)
+    with open(archivo, 'r', encoding='utf-8') as f:
+        lector = csv.DictReader(f)
+        filas  = list(lector)
 
+    total = len(filas)
+    print(f"📂 {total} filas cargadas. Iniciando envío...\n")
+
+    for i, fila in enumerate(filas):
+        payload = construir_payload(fila)
+
+        try:
+            # PUT con timestamp como clave → sobrescribe el último dato (el dashboard
+            # usa limitToLast(1), así que siempre muestra el dato más reciente)
+            ts  = int(payload.get('timestamp', i))
+            url = f"{FIREBASE_URL}{ruta}/{ts}.json"
+            r   = requests.put(url, json=payload, timeout=10)
+
+            alt  = payload.get('alt',  0)
+            fase = payload.get('fase', '—')
+            co2  = payload.get('co2',  0)
+            pm25 = payload.get('pm2_5', 0)
+            t_hs = payload.get('temp_hs', 0)
+            t_sc = payload.get('temp_scd', 0)
+
+            status = "✅" if r.status_code == 200 else f"⚠️ {r.status_code}"
+            print(f"[{i+1:>3}/{total}] {status}  Alt={alt:>6.1f}m  "
+                  f"Fase={fase:<12}  CO₂={co2:>4.0f}ppm  "
+                  f"PM2.5={pm25:>5.1f}  T_HS={t_hs:.1f}°C  T_SCD={t_sc:.1f}°C")
+
+        except Exception as e:
+            print(f"[{i+1:>3}/{total}] ⚠️  Error de conexión: {e}")
+
+        time.sleep(VELOCIDAD)
+
+    print(f"\n{'═'*55}")
+    print(f"   ✅ PLAYBACK COMPLETADO — {total} muestras enviadas")
+    print(f"   Ruta Firebase: {ruta}")
+    print(f"{'═'*55}\n")
 
 if __name__ == "__main__":
-    main()
+    ejecutar_mision()
