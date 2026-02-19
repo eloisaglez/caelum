@@ -1,0 +1,17 @@
+# ===================================
+# CANSAT CAELUM — Dependencias Python
+# IES Diego Velázquez · Misión 2
+# ===================================
+
+# Procesamiento de datos
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Visualización de mapas interactivos
+folium>=0.14.0
+
+# Gráficas
+matplotlib>=3.7.0
+
+# Comunicación con Firebase
+requests>=2.31.0
