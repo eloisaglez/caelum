@@ -18,7 +18,8 @@
 # NOTA: Los campos se envían a Firebase con los mismos nombres que en el CSV.
 #       El dashboard los lee directamente sin renombrar.
 #
-# ENTORNO: Google Colab o PC local
+# ENTORNO: Google Colab (https://colab.research.google.com/drive/1c3OvaFMpa3tECjAfKvbHDb28H_AzLPWf#scrollTo=x2GX2wcRiU__)
+#          o PC local
 # ===========================================================================================
 
 import requests
