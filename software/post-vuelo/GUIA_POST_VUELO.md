@@ -9,7 +9,7 @@ El CanSat guarda los datos en **tres lugares simultáneamente**:
 
 | Fuente | Fichero | Cuándo usar |
 |--------|---------|-------------|
-| **MicroSD** | `datos_SD.csv` | **Siempre** — fuente principal, máxima resolución |
+| **MicroSD** | `datos_SD.csv` | — fuente principal, máxima resolución |
 | **RAM backup** | `datos_RAM.csv` | Si la SD falla — fuente de emergencia |
 | **Telemetría radio** | `datos_radio.csv` | **Si no se recupera el CanSat** |
 
