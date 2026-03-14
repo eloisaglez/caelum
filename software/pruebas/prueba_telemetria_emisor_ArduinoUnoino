@@ -1,6 +1,6 @@
 // ============================================
 // PROYECTO: CanSat - Prueba de Telemetría
-// PLACA: Arduino Nano 33 BLE Sense
+// PLACA: Arduino UNO
 // CONEXIÓN APC220: TXD -> D2, RXD -> D3 [Modificado para evitar conflictos con carga]
 // ============================================
 
