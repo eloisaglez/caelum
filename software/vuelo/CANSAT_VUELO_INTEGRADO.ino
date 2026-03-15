@@ -1,4 +1,4 @@
-// =============================================================
+/// =============================================================
 //  CANSAT — PROGRAMA DE VUELO INTEGRADO
 //  Hardware : Arduino Nano 33 BLE Sense Rev2
 //  Módulo SD: Adafruit MicroSD SPI or SDIO Card Breakout Board
@@ -192,6 +192,7 @@ bool       modoTest = false;      // TEST: fuerza descenso para pruebas
 // =============================================================
 void setup() {
   Serial.begin(115200);
+  Serial1.begin(9600);      // APC220 — telemetría radio (Grove UART o D0/D1 directo)
   GPS_PORT.begin(GPS_BAUD);
 
   unsigned long ventana = millis();
@@ -352,6 +353,7 @@ void loop() {
   // -------- Enviar por puerto serie (telemetria radio + monitor) --------
   // Siempre se emite la linea CSV cruda — receptor_telemetria.py la recoge
   Serial.println(linea);
+  Serial1.println(linea);   // APC220 — telemetría radio
 
   // -------- Grabación inteligente en RAM (solo durante vuelo activo) --------
   if (grabandoRAM && ramCount < MAX_REGISTROS_RAM) {
