@@ -36,7 +36,7 @@
 //               Incluye todas las fases (espera + vuelo)
 //               Usar limpiar_espera.py para generar datos_SD.csv limpio
 //
-//  ESTRUCTURA CSV GENERADA (27 columnas):
+//  ESTRUCTURA CSV GENERADA (26 columnas):
 //    num_paquete, equipo, timestamp, datetime, lat, lon, alt, alt_mar, sats,
 //    temp_hs, hum_hs, temp_scd, hum_scd, temp_lps, presion,
 //    co2, pm1_0, pm2_5, pm10,
