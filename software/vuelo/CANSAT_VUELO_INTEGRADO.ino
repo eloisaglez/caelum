@@ -4,7 +4,7 @@
 //  Módulo SD: Adafruit MicroSD SPI or SDIO Card Breakout Board
 //  Archivo  : CANSAT_VUELO_INTEGRADO.ino
 //  Proyecto : CanSat — Equipo Caelum
-//  Fecha    : 2026
+//  Fecha    : Marzo 2026
 // =============================================================
 //
 //  MISIÓN: Análisis de capas atmosféricas mediante perfiles verticales
