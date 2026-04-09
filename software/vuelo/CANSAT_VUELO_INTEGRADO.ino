@@ -1,4 +1,4 @@
-/// =============================================================
+// =============================================================
 //  CANSAT — PROGRAMA DE VUELO INTEGRADO
 //  Hardware : Arduino Nano 33 BLE Sense Rev2
 //  Módulo SD: Adafruit MicroSD SPI or SDIO Card Breakout Board
